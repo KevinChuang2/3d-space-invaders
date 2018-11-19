@@ -5,7 +5,7 @@ class Assignment_Three_Scene extends Scene_Component
         if( !context.globals.has_controls   ) 
           context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
-        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,0,5 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
+        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,4,10 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
 
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
@@ -23,24 +23,58 @@ class Assignment_Three_Scene extends Scene_Component
         //        Make each Material from the correct shader.  Phong_Shader will work initially, but when 
         //        you get to requirements 6 and 7 you will need different ones.
         this.materials =
-          { phong: context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) )
+          { 
+            phong: context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) ),
+            ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ) ),
+            player: context.get_instance( Phong_Shader ).material( Color.of( 0.20, 0.85, 0.20, 1 ) )
           }
 
-        this.lights = [ new Light( Vec.of( -5,5,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
+        this.lights = [ new Light( Vec.of( -5,15,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
         // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
+        this.enemy_pos = [ [10, 2] ];
+        this.camera_angle = 0;
 
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
-        
+        this.key_triggered_button( "Rotate Left",  [ "1" ], () => this.camera_angle += 0.05 );
+        this.key_triggered_button( "Rotate Right",  [ "2" ], () => this.camera_angle -= 0.05 );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
         // TODO:  Draw the required boxes. Also update their stored matrices.
-        this.shapes.axis.draw( graphics_state, Mat4.identity(), this.materials.phong );
+
+        //player
+        let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) )
+                                             .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
+        this.shapes.box.draw( graphics_state, model_transform, this.materials.player );
+
+        model_transform = model_transform.times( Mat4.translation([0, 5, 7]) )
+                                         .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );
+        graphics_state.camera_transform = Mat4.inverse( model_transform );
+        
+        //ground
+        model_transform = Mat4.identity().times( Mat4.scale( [20, 1, 20] ) );
+        this.shapes.box.draw( graphics_state, model_transform, this.materials.ground );
+
+        for (let i=0; i<this.enemy_pos.length; i++){
+            model_transform = Mat4.identity().times( Mat4.rotation( this.enemy_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.enemy_pos[i][0],2,0] ) );
+            this.shapes.box.draw( graphics_state, model_transform, this.materials.phong );
+        }
+        
+        this.update_enemy_pos();
+      }
+
+      update_enemy_pos( ){
+          for (let i=0; i<this.enemy_pos.length; i++){
+              this.enemy_pos[i][0] -= 0.01;
+              
+              
+          }
       }
   }
 
