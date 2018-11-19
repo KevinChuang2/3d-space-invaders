@@ -1,9 +1,9 @@
-window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
-class Assignment_Three_Scene extends Scene_Component
+window.Space_Invaders_Scene = window.classes.Space_Invaders_Scene =
+class Space_Invaders_Scene extends Scene_Component
   { constructor( context, control_box )     // The scene begins by requesting the camera, shapes, and materials it will need.
       { super(   context, control_box );    // First, include a secondary Scene that provides movement controls:
-        if( !context.globals.has_controls   ) 
-          context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
+        //if( !context.globals.has_controls   ) 
+          //context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
         context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,4,10 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
 
@@ -71,8 +71,13 @@ class Assignment_Three_Scene extends Scene_Component
 
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
-              this.enemy_pos[i][0] -= 0.01;
               
+              //check collision here
+              if(this.enemy_pos[i][0] < 2.0){
+                  //dont move
+              } else{
+                  this.enemy_pos[i][0] -= 0.05;
+              }
               
           }
       }
