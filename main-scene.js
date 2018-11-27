@@ -32,8 +32,16 @@ class Space_Invaders_Scene extends Scene_Component
         this.lights = [ new Light( Vec.of( -5,15,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
         // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
-        this.enemy_pos = [ [10, 2] ];
+        this.enemy_pos = [ [10, Math.PI/2] ];
         this.camera_angle = 0;
+        //how many seconds in between each spawn 
+        this.spawnRate = .5;
+        this.spawnTime = 0;
+        //angle in which we spawn new enemy 
+        this.spawnAngle = 0;
+        this.maxSpawn = 15;
+        this.spawnDistance = 10;
+        this.gameOver = false;
 
       }
     make_control_panel()
@@ -65,8 +73,12 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.enemy_pos[i][0],2,0] ) );
             this.shapes.box.draw( graphics_state, model_transform, this.materials.phong );
         }
+        if(!this.gameOver)
+        {
+            this.update_enemy_pos();
+            this.spawn_enemies(dt);
+        }
         
-        this.update_enemy_pos();
       }
 
       update_enemy_pos( ){
@@ -74,6 +86,7 @@ class Space_Invaders_Scene extends Scene_Component
               
               //check collision here
               if(this.enemy_pos[i][0] < 2.0){
+                  //this.gameOver=true;
                   //dont move
               } else{
                   this.enemy_pos[i][0] -= 0.05;
@@ -81,6 +94,26 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
+      spawn_enemies(dt){
+           if(this.enemy_pos.length < this.maxSpawn)
+           {
+               if(this.spawnTime >= this.spawnRate)
+               {
+                    var angleOffset = Math.random()* 2* Math.PI;
+                    this.spawnAngle =angleOffset;
+                    var new_pos = [this.spawnDistance, this.spawnAngle];
+                    this.enemy_pos.push(new_pos);
+                    this.spawnTime=0;
+               }
+               else
+               {
+                   this.spawnTime+=dt;
+               }
+                
+             
+           }
+      }
+
   }
 
 class Texture_Scroll_X extends Phong_Shader
