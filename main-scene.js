@@ -146,12 +146,13 @@ class Space_Invaders_Scene extends Scene_Component
                           //collision!
                           //play sound
                           this.sound.hit.play();
-
+                         
                           //remove laser and enemy
                           this.laser_pos.splice(i,1);
                           i--;
                           collision = true;
                           this.enemy_pos.splice(j,1);
+                          this.score +=10;
                       }
                   }
               }
