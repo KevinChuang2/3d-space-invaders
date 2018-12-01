@@ -22,6 +22,8 @@ class Space_Invaders_Scene extends Scene_Component
                          invader3: new Shape_From_File( "/assets/models/invader3.obj" ),
                          invader4: new Shape_From_File( "/assets/models/invader4.obj" ),
                          player: new Shape_From_File( "/assets/models/player.obj" ),
+                         player_base: new Shape_From_File( "/assets/models/player_base.obj" ),
+                         player_turret: new Shape_From_File( "/assets/models/player_turret.obj" ),
                          ground: new Shape_From_File( "/assets/models/ground.obj")
                        }
         this.submit_shapes( context, shapes );
@@ -36,7 +38,8 @@ class Space_Invaders_Scene extends Scene_Component
             invader3: context.get_instance( Phong_Shader ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
             invader4: context.get_instance( Phong_Shader ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0} ),
-            player: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
+            player_base: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
+            player_turret: context.get_instance( Phong_Shader ).material( Color.of( 0.70, 0.70, 0.70, 0.9 ) ),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, 
                                                                                             specularity:0,
                                                                                             diffusivity:0 })
@@ -84,15 +87,18 @@ class Space_Invaders_Scene extends Scene_Component
         // TODO:  Draw the required boxes. Also update their stored matrices.
         this.smooth_camera();
         //player
-        let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) )
-                                             .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player.draw( graphics_state, model_transform, this.materials.player );
+        let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
+        model_transform = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
+                                              .times( Mat4.scale( [0.55,0.55,0.55] ) )
+                                              .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
+        this.shapes.player_turret.draw( graphics_state, model_transform, this.materials.player_turret );
 
 //         let l = model_transform.times( Mat4.translation( [0, 2, 0] ) )
 //                                 .times( Mat4.scale( [0.05, 0.05, 2] ) );
 //         this.shapes.laser.draw( graphics_state, l, this.materials.laser );
 
-        model_transform = model_transform.times( Mat4.translation([0, 10, 13]) )
+        model_transform = model_transform.times( Mat4.translation([0, 15, 20]) )
                                          .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );
         graphics_state.camera_transform = Mat4.inverse( model_transform );
         
@@ -122,9 +128,9 @@ class Space_Invaders_Scene extends Scene_Component
         //lasers
         for (let i=0; i<this.laser_pos.length; i++){
             model_transform = Mat4.identity().times( Mat4.rotation( this.laser_pos[i][1], Vec.of(0,1,0) ) )
-                                             .times( Mat4.translation( [this.laser_pos[i][0],3,0] ) )
+                                             .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
-                                             .times( Mat4.scale( [0.05, 0.05, 2] ) );
+                                             .times( Mat4.scale( [0.05, 0.05, 1] ) );
                                              
             this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
         }
