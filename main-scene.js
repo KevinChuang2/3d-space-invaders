@@ -46,7 +46,11 @@ class Space_Invaders_Scene extends Scene_Component
         //angle in which we spawn new enemy 
         this.spawnAngle = 0;
         this.maxSpawn = 15;
-        this.spawnDistance = 10;
+        this.spawnDistance = 20;
+        this.spawnHeight = 10;
+        this.fallRate = .025;
+        this.enemySpeed = 0.02;
+
         this.gameOver = false;
         this.sound = {};
         this.init_sounds();
@@ -76,18 +80,18 @@ class Space_Invaders_Scene extends Scene_Component
 //                                 .times( Mat4.scale( [0.05, 0.05, 2] ) );
 //         this.shapes.laser.draw( graphics_state, l, this.materials.laser );
 
-        model_transform = model_transform.times( Mat4.translation([0, 5, 7]) )
+        model_transform = model_transform.times( Mat4.translation([0, 10, 13]) )
                                          .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );
         graphics_state.camera_transform = Mat4.inverse( model_transform );
         
         //ground
-        model_transform = Mat4.identity().times( Mat4.scale( [20, 1, 20] ) );
+        model_transform = Mat4.identity().times( Mat4.scale( [50, 1, 50] ) );
         this.shapes.box.draw( graphics_state, model_transform, this.materials.ground );
 
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++){
             model_transform = Mat4.identity().times( Mat4.rotation( this.enemy_pos[i][1], Vec.of(0,1,0) ) )
-                                             .times( Mat4.translation( [this.enemy_pos[i][0],2,0] ) );
+                                             .times( Mat4.translation( [this.enemy_pos[i][0],this.enemy_pos[i][2],0] ) );
             this.shapes.box.draw( graphics_state, model_transform, this.materials.phong );
         }
         //lasers
@@ -170,15 +174,21 @@ class Space_Invaders_Scene extends Scene_Component
       }
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
-              
+              if(this.enemy_pos[i][2]>2)
+              {
+                    this.enemy_pos[i][2]-=this.fallRate;
+              }
               //check collision here
-              if(this.enemy_pos[i][0] < 2.0){
-                  //this.gameOver=true;
+              else if(this.enemy_pos[i][0] < 2.0)
+              {
+                  this.gameOver=true;
                   //dont move
                   this.enemy_pos.splice(i,1);
                   i--;
-              } else{
-                  this.enemy_pos[i][0] -= 0.01;
+              } 
+              else
+              {
+                  this.enemy_pos[i][0] -= this.enemySpeed;
               }
               
           }
@@ -190,7 +200,7 @@ class Space_Invaders_Scene extends Scene_Component
                {
                     var angleOffset = Math.random()* 2* Math.PI;
                     this.spawnAngle =angleOffset;
-                    var new_pos = [this.spawnDistance, this.spawnAngle];
+                    var new_pos = [this.spawnDistance, this.spawnAngle, this.spawnHeight];
                     this.enemy_pos.push(new_pos);
                     this.spawnTime=0;
                }
