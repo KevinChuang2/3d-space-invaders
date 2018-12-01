@@ -41,15 +41,16 @@ class Space_Invaders_Scene extends Scene_Component
         this.camera_angle = 0;
         this.target_angle = 0;
         //how many seconds in between each spawn 
-        this.spawnRate = 1;
+        this.spawnRate = 2;
         this.spawnTime = 0;
         //angle in which we spawn new enemy 
         this.spawnAngle = 0;
         this.maxSpawn = 15;
         this.spawnDistance = 10;
         this.gameOver = false;
-        this.laser_sound = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
-        this.laser_sound.load();
+        this.sound = {};
+        this.init_sounds();
+        
 
       }
     make_control_panel()
@@ -104,20 +105,47 @@ class Space_Invaders_Scene extends Scene_Component
         }
         
       }
+      init_sounds(){
+        this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
+        this.sound.laser.load();
+        this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
+        this.sound.hit.load();
+      }
       smooth_camera()
       {
           this.camera_angle = this.camera_angle + (this.target_angle - this.camera_angle) * .2;
       }
       update_laser_pos( ){
           for (let i=0; i<this.laser_pos.length; i++){
+              const radius = this.laser_pos[i][0];
+              const angle = this.laser_pos[i][1];
               
               //check collision here
-              if(this.laser_pos[i][0] > 20){
+              if(radius > 20){
                   //remove laser
                   this.laser_pos.splice(i,1);
                   i--;
               } else{
                   this.laser_pos[i][0] += 0.05;
+                  const real_pos = [radius*Math.sin(angle), radius*Math.cos(angle)];
+                  var collision = false;
+                  for (let j=0; j<this.enemy_pos.length && !collision; j++){
+                      const r = this.enemy_pos[j][0];
+                      const a = this.enemy_pos[j][1];
+                      const rp = [r*Math.sin(a), r*Math.cos(a)];
+                      const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
+                      if(dist<4){
+                          //collision!
+                          //play sound
+                          this.sound.hit.play();
+
+                          //remove laser and enemy
+                          this.laser_pos.splice(i,1);
+                          i--;
+                          collision = true;
+                          this.enemy_pos.splice(j,1);
+                      }
+                  }
               }
               
           }
@@ -129,8 +157,10 @@ class Space_Invaders_Scene extends Scene_Component
               if(this.enemy_pos[i][0] < 2.0){
                   //this.gameOver=true;
                   //dont move
+                  this.enemy_pos.splice(i,1);
+                  i--;
               } else{
-                  this.enemy_pos[i][0] -= 0.05;
+                  this.enemy_pos[i][0] -= 0.01;
               }
               
           }
@@ -155,11 +185,15 @@ class Space_Invaders_Scene extends Scene_Component
            }
       }
       shoot_laser(){
-          var new_laser = [0, this.camera_angle+Math.PI/2];
-          this.laser_pos.push(new_laser);
-          const newAudio = this.laser_sound.cloneNode()
-          newAudio.volume = 0.2;
-          newAudio.play();
+          if(this.sound.laser.paused){
+              var new_laser = [0, this.camera_angle+Math.PI/2];
+            this.laser_pos.push(new_laser);
+            this.sound.laser.play()
+          }
+          
+//           const newAudio = this.laser_sound.cloneNode()
+//           newAudio.volume = 0.2;
+//           newAudio.play();
       }
 
   }
