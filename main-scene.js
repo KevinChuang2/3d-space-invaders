@@ -79,7 +79,18 @@ class Space_Invaders_Scene extends Scene_Component
             this.update_enemy_pos();
             this.spawn_enemies(dt);
         }
-        
+        this.displayUI();
+      }
+      displayUI()
+      {
+          var canvas = document.getElementById("main-canvas");
+          //var ctx = canvas.getContext("2d");
+          //ctx.fillText("hello bitch", 10, 50);
+
+
+//           var ctx = canvas.getContext("2d");
+//           ctx.font = "30px Arial";
+//           ctx.fillText("hello bitch", 10, 50);
       }
       smooth_camera()
       {
