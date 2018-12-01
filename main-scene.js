@@ -75,6 +75,7 @@ class Space_Invaders_Scene extends Scene_Component
         // TODO:  Draw the required boxes. Also update their stored matrices.
         this.smooth_camera();
         //player
+
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) )
                                              .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
         this.shapes.box.draw( graphics_state, model_transform, this.materials.player );
@@ -248,6 +249,7 @@ class Space_Invaders_Scene extends Scene_Component
             }
             
       }
+      
 
   }
 
