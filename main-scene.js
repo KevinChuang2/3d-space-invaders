@@ -154,6 +154,7 @@ class Space_Invaders_Scene extends Scene_Component
                           i--;
                           collision = true;
                           this.enemy_pos.splice(j,1);
+                          this.score +=10;
                       }
                   }
               }
