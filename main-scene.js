@@ -15,7 +15,8 @@ class Space_Invaders_Scene extends Scene_Component
         //        a cube instance's texture_coords after it is already created.
         const shapes = { box:   new Cube(),
                          box_2: new Cube(),
-                         axis:  new Axis_Arrows()
+                         axis:  new Axis_Arrows(),
+                         laser: new Rounded_Capped_Cylinder(10,10)
                        }
         this.submit_shapes( context, shapes );
 
@@ -26,13 +27,17 @@ class Space_Invaders_Scene extends Scene_Component
           { 
             phong: context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) ),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ) ),
-            player: context.get_instance( Phong_Shader ).material( Color.of( 0.20, 0.85, 0.20, 1 ) )
+            player: context.get_instance( Phong_Shader ).material( Color.of( 0.20, 0.85, 0.20, 1 ) ),
+            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, 
+                                                                                            specularity:0,
+                                                                                            diffusivity:0 })
           }
 
         this.lights = [ new Light( Vec.of( -5,15,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
         // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
         this.enemy_pos = [ ];
+        this.laser_pos = [ ];
         this.camera_angle = 0;
         this.target_angle = 0;
         //how many seconds in between each spawn 
@@ -43,12 +48,15 @@ class Space_Invaders_Scene extends Scene_Component
         this.maxSpawn = 15;
         this.spawnDistance = 10;
         this.gameOver = false;
+        this.laser_sound = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
+        this.laser_sound.load();
 
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
         this.key_triggered_button( "Rotate Left",  [ "1" ], () => this.target_angle += 0.1 );
         this.key_triggered_button( "Rotate Right",  [ "2" ], () => this.target_angle -= 0.1 );
+        this.key_triggered_button( "Shoot Laser",  [ "3" ], () => this.shoot_laser() );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
@@ -61,6 +69,10 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
         this.shapes.box.draw( graphics_state, model_transform, this.materials.player );
 
+//         let l = model_transform.times( Mat4.translation( [0, 2, 0] ) )
+//                                 .times( Mat4.scale( [0.05, 0.05, 2] ) );
+//         this.shapes.laser.draw( graphics_state, l, this.materials.laser );
+
         model_transform = model_transform.times( Mat4.translation([0, 5, 7]) )
                                          .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );
         graphics_state.camera_transform = Mat4.inverse( model_transform );
@@ -69,14 +81,25 @@ class Space_Invaders_Scene extends Scene_Component
         model_transform = Mat4.identity().times( Mat4.scale( [20, 1, 20] ) );
         this.shapes.box.draw( graphics_state, model_transform, this.materials.ground );
 
+        //enemies
         for (let i=0; i<this.enemy_pos.length; i++){
             model_transform = Mat4.identity().times( Mat4.rotation( this.enemy_pos[i][1], Vec.of(0,1,0) ) )
                                              .times( Mat4.translation( [this.enemy_pos[i][0],2,0] ) );
             this.shapes.box.draw( graphics_state, model_transform, this.materials.phong );
         }
+        //lasers
+        for (let i=0; i<this.laser_pos.length; i++){
+            model_transform = Mat4.identity().times( Mat4.rotation( this.laser_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.laser_pos[i][0],2,0] ) )
+                                             .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
+                                             .times( Mat4.scale( [0.05, 0.05, 2] ) );
+                                             
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
+        }
         if(!this.gameOver)
         {
             this.update_enemy_pos();
+            this.update_laser_pos();
             this.spawn_enemies(dt);
         }
         
@@ -84,6 +107,20 @@ class Space_Invaders_Scene extends Scene_Component
       smooth_camera()
       {
           this.camera_angle = this.camera_angle + (this.target_angle - this.camera_angle) * .2;
+      }
+      update_laser_pos( ){
+          for (let i=0; i<this.laser_pos.length; i++){
+              
+              //check collision here
+              if(this.laser_pos[i][0] > 20){
+                  //remove laser
+                  this.laser_pos.splice(i,1);
+                  i--;
+              } else{
+                  this.laser_pos[i][0] += 0.05;
+              }
+              
+          }
       }
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
@@ -116,6 +153,13 @@ class Space_Invaders_Scene extends Scene_Component
                 
              
            }
+      }
+      shoot_laser(){
+          var new_laser = [0, this.camera_angle+Math.PI/2];
+          this.laser_pos.push(new_laser);
+          const newAudio = this.laser_sound.cloneNode()
+          newAudio.volume = 0.2;
+          newAudio.play();
       }
 
   }
