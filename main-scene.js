@@ -135,31 +135,38 @@ class Space_Invaders_Scene extends Scene_Component
                   i--;
               } else{
                   this.laser_pos[i][0] += 0.05;
-                  const real_pos = [radius*Math.sin(angle), radius*Math.cos(angle)];
-                  var collision = false;
-                  for (let j=0; j<this.enemy_pos.length && !collision; j++){
-                      const r = this.enemy_pos[j][0];
-                      const a = this.enemy_pos[j][1];
-                      const rp = [r*Math.sin(a), r*Math.cos(a)];
-                      const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
-                      if(dist<3){
-                          //collision!
-                          //play sound
-                          //this.sound.hit.play();
-                          const newAudio = this.sound.hit.cloneNode()
-                          newAudio.play();
-
-                          //remove laser and enemy
-                          this.laser_pos.splice(i,1);
-                          i--;
-                          collision = true;
-                          this.enemy_pos.splice(j,1);
-                          this.score +=10;
-                      }
+                  var result = this.check_laser_hit(radius, angle);
+                  if(result){
+                     this.laser_pos.splice(i,1);
+                     i--; 
                   }
               }
               
           }
+      }
+      check_laser_hit( radius, angle ){
+            const real_pos = [radius*Math.sin(angle), radius*Math.cos(angle)];
+            var collision = false;
+            for (let j=0; j<this.enemy_pos.length && !collision; j++){
+                const r = this.enemy_pos[j][0];
+                const a = this.enemy_pos[j][1];
+                const rp = [r*Math.sin(a), r*Math.cos(a)];
+                const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
+                if(dist<3){
+                    //collision!
+                    //play sound
+                    //this.sound.hit.play();
+                    const newAudio = this.sound.hit.cloneNode()
+                    newAudio.play();
+
+                    //remove laser and enemy
+                    collision = true;
+                    this.enemy_pos.splice(j,1);
+                    this.score +=10;
+                    return true;
+                }
+            }
+            return false;
       }
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
