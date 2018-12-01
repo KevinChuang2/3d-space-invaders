@@ -16,7 +16,8 @@ class Space_Invaders_Scene extends Scene_Component
         const shapes = { box:   new Cube(),
                          box_2: new Cube(),
                          axis:  new Axis_Arrows(),
-                         laser: new Rounded_Capped_Cylinder(10,10)
+                         laser: new Rounded_Capped_Cylinder(10,10),
+                         invader1: new Shape_From_File( "/assets/models/invader1.obj" )
                        }
         this.submit_shapes( context, shapes );
 
@@ -25,7 +26,7 @@ class Space_Invaders_Scene extends Scene_Component
         //        you get to requirements 6 and 7 you will need different ones.
         this.materials =
           { 
-            phong: context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ) ),
+            phong: context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:0.5} ),
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ) ),
             player: context.get_instance( Phong_Shader ).material( Color.of( 0.20, 0.85, 0.20, 1 ) ),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, 
@@ -94,8 +95,11 @@ class Space_Invaders_Scene extends Scene_Component
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++){
             model_transform = Mat4.identity().times( Mat4.rotation( this.enemy_pos[i][1], Vec.of(0,1,0) ) )
-                                             .times( Mat4.translation( [this.enemy_pos[i][0],this.enemy_pos[i][2],0] ) );
-            this.shapes.box.draw( graphics_state, model_transform, this.materials.phong );
+                                             .times( Mat4.translation( [this.enemy_pos[i][0],this.enemy_pos[i][2],0] ) )
+                                             .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
+                                             .times( Mat4.scale( [0.7,0.7,0.7] ) );
+
+            this.shapes.invader1.draw( graphics_state, model_transform, this.materials.phong );
         }
         //lasers
         for (let i=0; i<this.laser_pos.length; i++){
@@ -169,7 +173,7 @@ class Space_Invaders_Scene extends Scene_Component
                 const a = this.enemy_pos[j][1];
                 const rp = [r*Math.sin(a), r*Math.cos(a)];
                 const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
-                if(dist<3){
+                if(dist<2.7){
                     //collision!
                     //play sound
                     //this.sound.hit.play();
@@ -187,7 +191,7 @@ class Space_Invaders_Scene extends Scene_Component
       }
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
-              if(this.enemy_pos[i][2]>2)
+              if(this.enemy_pos[i][2]>3)
               {
                     this.enemy_pos[i][2]-=this.fallRate;
               }
