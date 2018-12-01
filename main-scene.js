@@ -32,10 +32,11 @@ class Space_Invaders_Scene extends Scene_Component
         this.lights = [ new Light( Vec.of( -5,15,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
 
         // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
-        this.enemy_pos = [ [10, Math.PI/2] ];
+        this.enemy_pos = [ ];
         this.camera_angle = 0;
+        this.target_angle = 0;
         //how many seconds in between each spawn 
-        this.spawnRate = .5;
+        this.spawnRate = 1;
         this.spawnTime = 0;
         //angle in which we spawn new enemy 
         this.spawnAngle = 0;
@@ -46,15 +47,15 @@ class Space_Invaders_Scene extends Scene_Component
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
-        this.key_triggered_button( "Rotate Left",  [ "1" ], () => this.camera_angle += 0.05 );
-        this.key_triggered_button( "Rotate Right",  [ "2" ], () => this.camera_angle -= 0.05 );
+        this.key_triggered_button( "Rotate Left",  [ "1" ], () => this.target_angle += 0.1 );
+        this.key_triggered_button( "Rotate Right",  [ "2" ], () => this.target_angle -= 0.1 );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
         // TODO:  Draw the required boxes. Also update their stored matrices.
-
+        this.smooth_camera();
         //player
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) )
                                              .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
@@ -80,7 +81,10 @@ class Space_Invaders_Scene extends Scene_Component
         }
         
       }
-
+      smooth_camera()
+      {
+          this.camera_angle = this.camera_angle + (this.target_angle - this.camera_angle) * .2;
+      }
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
               
