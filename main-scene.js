@@ -52,6 +52,8 @@ class Space_Invaders_Scene extends Scene_Component
         this.init_sounds();
         
 
+        this.score = 0;
+
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
@@ -103,7 +105,13 @@ class Space_Invaders_Scene extends Scene_Component
             this.update_laser_pos();
             this.spawn_enemies(dt);
         }
-        
+        this.displayUI();
+      }
+      displayUI()
+      {
+            var score = document.getElementById("score");
+            score.innerHTML = this.score;
+
       }
       init_sounds(){
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
