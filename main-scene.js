@@ -142,10 +142,12 @@ class Space_Invaders_Scene extends Scene_Component
                       const a = this.enemy_pos[j][1];
                       const rp = [r*Math.sin(a), r*Math.cos(a)];
                       const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
-                      if(dist<4){
+                      if(dist<3){
                           //collision!
                           //play sound
-                          this.sound.hit.play();
+                          //this.sound.hit.play();
+                          const newAudio = this.sound.hit.cloneNode()
+                          newAudio.play();
 
                           //remove laser and enemy
                           this.laser_pos.splice(i,1);
