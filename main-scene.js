@@ -10,9 +10,14 @@ class Space_Invaders_Scene extends Scene_Component
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
-        // TODO:  Create two cubes, including one with the default texture coordinates (from 0 to 1), and one with the modified
-        //        texture coordinates as required for cube #2.  You can either do this by modifying the cube code or by modifying
-        //        a cube instance's texture_coords after it is already created.
+        this.webgl_manager = context;      // Save off the Webgl_Manager object that created the scene.
+        this.scratchpad = document.createElement('canvas');
+        this.scratchpad_context = this.scratchpad.getContext('2d');     // A hidden canvas for re-sizing the real canvas to be square.
+        this.scratchpad.width   = 256;
+        this.scratchpad.height  = 256;
+        this.texture = new Texture ( context.gl, "", false, false );        // Initial image source: Blank gif file
+        this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
         const shapes = { box:   new Cube(),
                          box_2: new Cube(),
                          axis:  new Axis_Arrows(),
@@ -28,9 +33,6 @@ class Space_Invaders_Scene extends Scene_Component
                        }
         this.submit_shapes( context, shapes );
 
-        // TODO:  Create the materials required to texture both cubes with the correct images and settings.
-        //        Make each Material from the correct shader.  Phong_Shader will work initially, but when 
-        //        you get to requirements 6 and 7 you will need different ones.
         this.materials =
           { 
             invader1: context.get_instance( Phong_Shader ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
@@ -40,14 +42,10 @@ class Space_Invaders_Scene extends Scene_Component
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0} ),
             player_base: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
             player_turret: context.get_instance( Phong_Shader ).material( Color.of( 0.70, 0.70, 0.70, 0.9 ) ),
-            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, 
-                                                                                            specularity:0,
-                                                                                            diffusivity:0 })
+            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 })
           }
 
-        this.lights = [ new Light( Vec.of( -5,15,5,1 ), Color.of( 0,1,1,1 ), 100000 ) ];
-
-        // TODO:  Create any variables that needs to be remembered from frame to frame, such as for incremental movements over time.
+        this.lights = [ new Light( Vec.of( 0,9,1,0 ), Color.of( 0,1,1,0.5 ), 10000)];
         this.enemy_pos = [ ];
         this.laser_pos = [ ];
         this.camera_angle = 0;
@@ -67,11 +65,8 @@ class Space_Invaders_Scene extends Scene_Component
 
         this.gameOver = false;
         this.sound = {};
-        this.init_sounds();
-        
-
-        
-
+        this.init_sounds(); 
+        this.context = context;
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
@@ -79,34 +74,84 @@ class Space_Invaders_Scene extends Scene_Component
         this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.target_angle -= 0.1 );
         this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
         this.key_triggered_button( "Restart (when dead)", ["p"], () => this.restart_game());
+        this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
+                { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-
-        // TODO:  Draw the required boxes. Also update their stored matrices.
         this.smooth_camera();
+
+        //draw scene from lights perspective
+        //graphics_state.camera_transform = Mat4.inverse( this.lights[0].position );
+        graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
+
         //player
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
         this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
-        model_transform = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
-                                              .times( Mat4.scale( [0.55,0.55,0.55] ) )
-                                              .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, model_transform, this.materials.player_turret );
+        let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
+                                    .times( Mat4.scale( [0.55,0.55,0.55] ) )
+                                    .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret );
+        
+        //ground
+        model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
+                                         .times( Mat4.translation([0,-0.1,0]) );
+        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
+
+        //enemies
+        for (let i=0; i<this.enemy_pos.length; i++) {
+            model_transform = Mat4.identity().times( Mat4.rotation( this.enemy_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.enemy_pos[i][0],this.enemy_pos[i][2],0] ) )
+                                             .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
+                                             .times( Mat4.scale( [0.7,0.7,0.7] ) );
+            let rand_index = this.enemy_pos[i][3];
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
+        }
+
+        //lasers
+        for (let i=0; i<this.laser_pos.length; i++){
+            model_transform = Mat4.identity().times( Mat4.rotation( this.laser_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
+                                             .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
+                                             .times( Mat4.scale( [0.05, 0.05, 1] ) );                               
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
+        }
+
+        this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
+        this.texture.image.src = this.result_img.src = this.scratchpad.toDataURL("image/png");
+        this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
+
+        // ------------------------------------------------------------------------------------------------------------
+        //draw scene from camera perspective
+
+        //update camera position
+        turret = turret.times( Mat4.translation([0, 15, 20]) )
+                       .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );                                         
+        graphics_state.camera_transform = Mat4.inverse( turret );
+
+        //player
+        model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
+        turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
+                                .times( Mat4.scale( [0.55,0.55,0.55] ) )
+                                .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret );
 
 //         let l = model_transform.times( Mat4.translation( [0, 2, 0] ) )
 //                                 .times( Mat4.scale( [0.05, 0.05, 2] ) );
 //         this.shapes.laser.draw( graphics_state, l, this.materials.laser );
 
-        model_transform = model_transform.times( Mat4.translation([0, 15, 20]) )
-                                         .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );
-        graphics_state.camera_transform = Mat4.inverse( model_transform );
+
         
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
                                          .times( Mat4.translation([0,-0.1,0]) );
                                          //.times( Mat4.rotation(Math.PI/2, [1,0,0]) );
-        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
+        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground.override( {texture: this.texture} ) );
 
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++){
@@ -115,23 +160,18 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
-            if (rand_index == 1) {
-                  this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 );
-            } else if (rand_index == 2) {
-                  this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 );
-            } else if (rand_index == 3) {
-                  this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 );
-            } else {
-                  this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 );
-            }
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
         }
+
         //lasers
         for (let i=0; i<this.laser_pos.length; i++){
             model_transform = Mat4.identity().times( Mat4.rotation( this.laser_pos[i][1], Vec.of(0,1,0) ) )
                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );
-                                             
             this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
         }
         if(!this.gameOver)
@@ -142,6 +182,7 @@ class Space_Invaders_Scene extends Scene_Component
         }
         this.displayUI();
       }
+      //AUXILIARY FUNCTIONS
       displayUI()
       {
             var score = document.getElementById("score");
@@ -257,7 +298,7 @@ class Space_Invaders_Scene extends Scene_Component
            this.spawnRate = 2.0 - Math.floor(this.score/50)/6;
       }
       shoot_laser(){
-          if(this.sound.laser.paused){
+          if(this.sound.laser.paused && !this.gameOver){
               var new_laser = [0.5, this.camera_angle+Math.PI/2];
             this.laser_pos.push(new_laser);
             this.sound.laser.play()
