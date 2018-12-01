@@ -41,11 +41,13 @@ class Space_Invaders_Scene extends Scene_Component
         this.camera_angle = 0;
         this.target_angle = 0;
         //how many seconds in between each spawn 
-        this.spawnRate = 2;
+        this.spawnRate = 2.0;
         this.spawnTime = 0;
         //angle in which we spawn new enemy 
         this.spawnAngle = 0;
+        this.score = 0;
         this.maxSpawn = 15;
+
         this.spawnDistance = 20;
         this.spawnHeight = 10;
         this.fallRate = .025;
@@ -56,14 +58,15 @@ class Space_Invaders_Scene extends Scene_Component
         this.init_sounds();
         
 
-        this.score = 0;
+        
 
       }
     make_control_panel()
       { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
-        this.key_triggered_button( "Rotate Left",  [ "1" ], () => this.target_angle += 0.1 );
-        this.key_triggered_button( "Rotate Right",  [ "2" ], () => this.target_angle -= 0.1 );
-        this.key_triggered_button( "Shoot Laser",  [ "3" ], () => this.shoot_laser() );
+        this.key_triggered_button( "Rotate Left",  [ "a" ], () => this.target_angle += 0.1 );
+        this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.target_angle -= 0.1 );
+        this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
+        this.key_triggered_button( "Restart (when dead)", ["p"], () => this.restart_game());
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
@@ -115,6 +118,16 @@ class Space_Invaders_Scene extends Scene_Component
       {
             var score = document.getElementById("score");
             score.innerHTML = this.score;
+            var gameOver = document.getElementById("gameover");
+            if(this.gameOver)
+            {
+                  
+                  gameOver.innerHTML = "Game Over. Press p to restart";
+            }
+            else
+            {
+                  gameOver.innerHTML = "";
+            }
 
       }
       init_sounds(){
@@ -204,6 +217,8 @@ class Space_Invaders_Scene extends Scene_Component
                 
              
            }
+           this.maxSpawn = Math.floor(this.score/50) + 15;
+           this.spawnRate = 2.0 - Math.floor(this.score/50)/6;
       }
       shoot_laser(){
           if(this.sound.laser.paused){
@@ -211,10 +226,20 @@ class Space_Invaders_Scene extends Scene_Component
             this.laser_pos.push(new_laser);
             this.sound.laser.play()
           }
-          
 //           const newAudio = this.laser_sound.cloneNode()
 //           newAudio.volume = 0.2;
 //           newAudio.play();
+      }
+      restart_game()
+      {
+            if(this.gameOver)
+            {
+                  this.score = 0;
+                  this.gameOver=false;
+                  this.enemy_pos = [];
+                  this.laser_pos = [];
+            }
+            
       }
 
   }
