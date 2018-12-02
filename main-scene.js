@@ -5,7 +5,7 @@ class Space_Invaders_Scene extends Scene_Component
         //if( !context.globals.has_controls   ) 
           //context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
-        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,4,10 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
+        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,1 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
 
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
@@ -35,14 +35,23 @@ class Space_Invaders_Scene extends Scene_Component
 
         this.materials =
           { 
-            invader1: context.get_instance( Phong_Shader ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
-            invader2: context.get_instance( Phong_Shader ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
-            invader3: context.get_instance( Phong_Shader ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
-            invader4: context.get_instance( Phong_Shader ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
-            ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0} ),
-            player_base: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
-            player_turret: context.get_instance( Phong_Shader ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
-            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 })
+            invader1a: context.get_instance( Shader1 ).material(), //make intermediate models
+            invader2a: context.get_instance( Shader1 ).material(),
+            invader3a: context.get_instance( Shader1 ).material(),
+            invader4a: context.get_instance( Shader1 ).material(),
+            grounda: context.get_instance( Shader1 ).material(),
+            player_basea: context.get_instance( Shader1 ).material(),
+            player_turreta: context.get_instance( Shader1 ).material(),
+            lasera: context.get_instance( Shader1 ).material(),
+            
+            invader1: context.get_instance( Shader2 ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
+            invader2: context.get_instance( Shader2 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
+            invader3: context.get_instance( Shader2 ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
+            invader4: context.get_instance( Shader2 ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
+            ground: context.get_instance( Shader2 ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0, texture:this.texture} ),
+            player_base: context.get_instance( Shader2 ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
+            player_turret: context.get_instance( Shader2 ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
+            laser: context.get_instance( Shader2 ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 })
           }
 
         this.lights = [ new Light( Vec.of( 0,10,1,0 ), Color.of( 0,1,1,1 ), 10000), new Light( Vec.of( 0,4,0,1 ), Color.of( 0,1,1,1 ), 10000) ];
@@ -78,7 +87,7 @@ class Space_Invaders_Scene extends Scene_Component
                 { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
     display( graphics_state )
-      { graphics_state.lights = [this.lights[1]];        // Use the lights stored in this.lights.
+      { graphics_state.lights = [this.lights[0]];        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
         this.smooth_camera();
 
@@ -88,16 +97,16 @@ class Space_Invaders_Scene extends Scene_Component
 
         //player
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_basea );
         let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                     .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                     .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret );
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turreta );
         
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
                                          .times( Mat4.translation([0,-0.1,0]) );
-        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
+        this.shapes.ground.draw( graphics_state, model_transform, this.materials.grounda );
 
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++) {
@@ -106,10 +115,10 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
-            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
-            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
-            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
-            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1a ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2a ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3a ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4a ); }
         }
 
         //lasers
@@ -118,15 +127,21 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );                               
-            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.lasera );
         }
 
         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
         this.texture.image.src = this.result_img.src = this.scratchpad.toDataURL("image/png");
+        
+        this.webgl_manager.gl.bindFramebuffer(this.webgl_manager.gl.FRAMEBUFFER, null);
+        this.webgl_manager.gl.clearColor(0.98, 0.98, 0.98, 1);
         this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
+
+        
 
         // ------------------------------------------------------------------------------------------------------------
         //draw scene from camera perspective
+        graphics_state.lights = [this.lights[0]];
 
         //update camera position
         turret = turret.times( Mat4.translation([0, 15, 20]) )
@@ -150,7 +165,6 @@ class Space_Invaders_Scene extends Scene_Component
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
                                          .times( Mat4.translation([0,-0.1,0]) );
-                                         //.times( Mat4.rotation(Math.PI/2, [1,0,0]) );
         this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
 
         //enemies
