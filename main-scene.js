@@ -220,7 +220,8 @@ class Space_Invaders_Scene extends Scene_Component
             var gameOver = document.getElementById("gameover");
             var health = document.getElementById("health");
             health.style.color = "#FF0000";
-            health.innerHTML = "♥ ".repeat(this.health);
+            health.innerHTML = '<img src="/assets/img/full_heart.png"> </img>'.repeat(this.health);
+            health.innerHTML += '<img src="/assets/img/empty_heart.png"> </img>'.repeat(3-this.health);
             if(this.gameOver)
             {
                   
@@ -235,7 +236,7 @@ class Space_Invaders_Scene extends Scene_Component
       init_sounds(){
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
         this.sound.laser.load();
-        this.sound.laser.playbackRate = 2.5;
+        this.sound.laser.playbackRate = 1.5;
         this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
         this.sound.hit.load();
         this.sound.damage = new Audio('assets/sound/punch_or_whack_-Vladimir-403040765.wav');
