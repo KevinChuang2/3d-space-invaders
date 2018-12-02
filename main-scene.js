@@ -42,6 +42,10 @@ class Space_Invaders_Scene extends Scene_Component
             ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0} ),
             player_base: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
             player_turret: context.get_instance( Phong_Shader ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
+            invader1_shadow: context.get_instance( Shadow_Shader ).material(), //make intermediate models
+            invader2_shadow: context.get_instance( Shadow_Shader ).material(),
+            invader3_shadow: context.get_instance( Shadow_Shader ).material(),
+            invader4_shadow: context.get_instance( Shadow_Shader ).material(),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 })
           }
 
@@ -162,10 +166,10 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
-            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
-            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
-            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
-            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1_shadow ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2_shadow ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3_shadow ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4_shadow ); }
         }
 
         //lasers
