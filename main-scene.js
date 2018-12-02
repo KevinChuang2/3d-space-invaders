@@ -217,6 +217,9 @@ class Space_Invaders_Scene extends Scene_Component
         this.sound.laser.playbackRate = 2.5;
         this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
         this.sound.hit.load();
+        this.sound.damage = new Audio('assets/sound/punch_or_whack_-Vladimir-403040765.wav');
+        this.sound.damage.currentTime = .2;
+        this.sound.damage.load();
       }
       smooth_camera()
       {
@@ -274,10 +277,9 @@ class Space_Invaders_Scene extends Scene_Component
               //check collision here
               else if(this.enemy_pos[i][0] < 2.0)
               {
-                  this.health--;
-                  this.player_blink_red();
-                  if(this.health <=0)
-                    this.gameOver=true;
+                  
+                  this.player_got_hit();
+                  
                   //dont move
                   this.enemy_pos.splice(i,1);
                   i--;
@@ -289,9 +291,14 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
-      player_blink_red()
+      player_got_hit()
       {
-      
+        const newAudio = this.sound.damage.cloneNode()
+        newAudio.play();
+        this.health--;
+        if(this.health <=0)
+           this.gameOver=true;
+
       }
       spawn_enemies(dt){
            if(this.enemy_pos.length < this.maxSpawn)
