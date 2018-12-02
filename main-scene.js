@@ -71,8 +71,9 @@ class Space_Invaders_Scene extends Scene_Component
         this.spawnHeight = 10;
         this.fallRate = .025;
         this.enemySpeed = 0.02;
-
-        this.gameOver = false;
+        
+        this.gameOver = true;
+        this.gameStart = false;
         this.sound = {};
         this.init_sounds(); 
         this.context = context;
@@ -96,6 +97,7 @@ class Space_Invaders_Scene extends Scene_Component
         graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
 
         //player
+
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
         this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_basea );
         let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
@@ -323,15 +325,26 @@ class Space_Invaders_Scene extends Scene_Component
       }
       restart_game()
       {
-            if(this.gameOver)
-            {
-                  this.score = 0;
-                  this.gameOver=false;
-                  this.enemy_pos = [];
-                  this.laser_pos = [];
-            }
-            
+          if(this.gameStart)
+          {
+
+                if(this.gameOver)
+                {
+                      this.score = 0;
+                      this.gameOver=false;
+                      this.enemy_pos = [];
+                      this.laser_pos = [];
+                }
+          }
+          else
+          {
+              var element = document.getElementById("startScreen");
+              element. parentNode.removeChild(element);
+              this.gameStart = true;
+              this.gameOver=false;
+          }
       }
+      
 
   }
 
