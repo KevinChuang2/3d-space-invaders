@@ -35,17 +35,26 @@ class Space_Invaders_Scene extends Scene_Component
 
         this.materials =
           { 
-            invader1: context.get_instance( Phong_Shader ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
-            invader2: context.get_instance( Phong_Shader ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
-            invader3: context.get_instance( Phong_Shader ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
-            invader4: context.get_instance( Phong_Shader ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
-            ground: context.get_instance( Phong_Shader ).material( Color.of( 0.40, 0.26, 0.13, 1 ), { ambient:0.2, specularity:0} ),
-            player_base: context.get_instance( Phong_Shader ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
-            player_turret: context.get_instance( Phong_Shader ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
-            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 })
-          }
+            invader1: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
+            invader2: context.get_instance( Phong_Shader1 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
+            invader3: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
+            invader4: context.get_instance( Phong_Shader1 ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
+            ground: context.get_instance( Phong_Shader1 ).material( Color.of( 0.15, 0.07, 0.01, 1 ), { ambient:0.2, specularity:0} ),
+            player_base: context.get_instance( Phong_Shader1 ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
+            player_turret: context.get_instance( Phong_Shader1 ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
+            laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 }),
 
-        this.lights = [ new Light( Vec.of( 0,10,1,0 ), Color.of( 0,1,1,1 ), 10000), new Light( Vec.of( 0,4,0,1 ), Color.of( 0,1,1,1 ), 10000) ];
+            invader1_shadow: context.get_instance( Shadow_Shader ).material(), //make intermediate models
+            invader2_shadow: context.get_instance( Shadow_Shader ).material(),
+            invader3_shadow: context.get_instance( Shadow_Shader ).material(),
+            invader4_shadow: context.get_instance( Shadow_Shader ).material(),
+            ground_shadow: context.get_instance( Shadow_Shader ).material(),
+            player_base_shadow: context.get_instance( Shadow_Shader ).material(),
+            player_turret_shadow: context.get_instance( Shadow_Shader ).material(),
+         
+          }
+        //lightzzz
+        this.lights = [ new Light( Vec.of( 0,5,1,0 ), Color.of( 0,1,1,1 ), 100000) ];
         this.enemy_pos = [ ];
         this.laser_pos = [ ];
         this.camera_angle = 0;
@@ -69,7 +78,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.context = context;
       }
     make_control_panel()
-      { // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
+      { 
         this.key_triggered_button( "Rotate Left",  [ "a" ], () => this.target_angle += 0.1 );
         this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.target_angle -= 0.1 );
         this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
@@ -78,26 +87,25 @@ class Space_Invaders_Scene extends Scene_Component
                 { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
     display( graphics_state )
-      { graphics_state.lights = [this.lights[1]];        // Use the lights stored in this.lights.
+      { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
         this.smooth_camera();
 
         //draw scene from lights perspective
-        //graphics_state.camera_transform = Mat4.inverse( this.lights[0].position );
-        graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
+        graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ); 
 
         //player
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base_shadow );
         let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                     .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                     .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret );
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret_shadow );
         
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
-                                         .times( Mat4.translation([0,-0.1,0]) );
-        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
+                                         .times( Mat4.translation([0,0.03,0]) );
+        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground_shadow );
 
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++) {
@@ -106,10 +114,10 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
-            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
-            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
-            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
-            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1_shadow ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2_shadow ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3_shadow ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4_shadow ); }
         }
 
         //lasers
@@ -135,22 +143,15 @@ class Space_Invaders_Scene extends Scene_Component
 
         //player
         model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base.override( { texture: this.texture } ) );
         turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                 .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                 .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret );
-
-//         let l = model_transform.times( Mat4.translation( [0, 2, 0] ) )
-//                                 .times( Mat4.scale( [0.05, 0.05, 2] ) );
-//         this.shapes.laser.draw( graphics_state, l, this.materials.laser );
-
-
-        
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret.override( { texture: this.texture } ) );
+       
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
-                                         .times( Mat4.translation([0,-0.1,0]) );
-                                         //.times( Mat4.rotation(Math.PI/2, [1,0,0]) );
+                                         .times( Mat4.translation([0,0.03,0]) );
         this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground );
 
         //enemies
@@ -160,10 +161,10 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.rotation( -Math.PI/2, [0,1,0] ))
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
-            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1 ); } 
-            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2 ); } 
-            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3 ); } 
-            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4 ); }
+            if (rand_index == 1) { this.shapes.invader1.draw( graphics_state, model_transform, this.materials.invader1.override( { texture: this.texture } ) ); } 
+            else if (rand_index == 2) { this.shapes.invader2.draw( graphics_state, model_transform, this.materials.invader2.override( { texture: this.texture } ) ); } 
+            else if (rand_index == 3) { this.shapes.invader3.draw( graphics_state, model_transform, this.materials.invader3.override( { texture: this.texture } ) ); } 
+            else { this.shapes.invader4.draw( graphics_state, model_transform, this.materials.invader4.override( { texture: this.texture } ) ); }
         }
 
         //lasers
@@ -239,9 +240,7 @@ class Space_Invaders_Scene extends Scene_Component
                 const rp = [r*Math.sin(a), r*Math.cos(a)];
                 const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
                 if(dist<2.7){
-                    //collision!
-                    //play sound
-                    //this.sound.hit.play();
+                    //collision
                     const newAudio = this.sound.hit.cloneNode()
                     newAudio.play();
 
@@ -265,8 +264,8 @@ class Space_Invaders_Scene extends Scene_Component
               {
                   this.gameOver=true;
                   //dont move
-//                   this.enemy_pos.splice(i,1);
-//                   i--;
+                  this.enemy_pos.splice(i,1);
+                  i--;
               } 
               else
               {
@@ -321,73 +320,56 @@ class Space_Invaders_Scene extends Scene_Component
 
   }
 
-class Texture_Scroll_X extends Phong_Shader
-{ fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
-    {
-      // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #6.
+class Shadow_Shader extends Shader
+{ material()     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
+  { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
+      { constructor( shader )
+          { Object.assign( this, { shader } );  // Assign defaults.
+          }
+      }( this);
+  }
+  map_attribute_name_to_buffer_name( name )                  // We'll pull single entries out per vertex by field name.  Map
+    {                                                        // those names onto the vertex array names we'll pull them from.
+      return { object_space_pos: "positions", normal: "normals", tex_coord: "texture_coords" }[ name ]; }   // Use a simple lookup table.
+  shared_glsl_code()            // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
+    { return `precision mediump float;
+        `;
+    }
+  vertex_glsl_code()           // ********* VERTEX SHADER *********
+    { return `
+        attribute vec3 object_space_pos;
+
+        uniform mat4 camera_transform, camera_model_transform, projection_camera_model_transform;
+        uniform mat3 inverse_transpose_modelview;
+
+        void main() { gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0); }`;
+    }
+  fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
+    {                            // A fragment is a pixel that's overlapped by the current triangle.
       return `
-        uniform sampler2D texture;
-        void main()
-        { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
-          { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
-            return;
-          }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
-                                            // Phong shading is not to be confused with the Phong Reflection Model.
-          vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
-                                                                                      // Compute an initial (ambient) color:
-          if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
-          else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-          gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
-        }`;
+        void main() { gl_FragColor = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1); }
+      `;
+
+    }
+    // Define how to synchronize our JavaScript's variables to the GPU's:
+  update_GPU( g_state, model_transform, material, gpu = this.g_addrs, gl = this.gl )
+    {                              // First, send the matrices to the GPU, additionally cache-ing some products of them we know we'll need:
+      this.update_matrices( g_state, model_transform, gpu, gl );
+    }
+  update_matrices( g_state, model_transform, gpu, gl )                                    // Helper function for sending matrices to GPU.
+    {                                                   // (PCM will mean Projection * Camera * Model)
+      let [ P, C, M ]    = [ Mat4.orthographic( -40, 40, -40, 40, -10, 20 ), g_state.camera_transform, model_transform ],
+            CM     =      C.times(  M ),
+            PCM    =      P.times( CM ),
+            inv_CM = Mat4.inverse( CM ).sub_block([0,0], [3,3]);
+      gl.uniformMatrix4fv( gpu.camera_transform_loc,                  false, Mat.flatten_2D_to_1D(     C .transposed() ) );
+      gl.uniformMatrix4fv( gpu.camera_model_transform_loc,            false, Mat.flatten_2D_to_1D(     CM.transposed() ) );
+      gl.uniformMatrix4fv( gpu.projection_camera_model_transform_loc, false, Mat.flatten_2D_to_1D(    PCM.transposed() ) );
+      gl.uniformMatrix3fv( gpu.inverse_transpose_modelview_loc,       false, Mat.flatten_2D_to_1D( inv_CM              ) );       
     }
 }
 
-class Texture_Rotate extends Phong_Shader
-{ fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
-    {
-      // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
-      return `
-        uniform sampler2D texture;
-        void main()
-        { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
-          { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
-            return;
-          }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
-                                            // Phong shading is not to be confused with the Phong Reflection Model.
-          vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
-                                                                                      // Compute an initial (ambient) color:
-          if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
-          else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-          gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
-        }`;
-    }
-}
-
-class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading. 
-                                           // Wikipedia has good defintions for these concepts.  Subclasses of class Shader each store 
-                                           // and manage a complete GPU program.  This particular one is a big "master shader" meant to 
-                                           // handle all sorts of lighting situations in a configurable way. 
-                                           // Phong Shading is the act of determining brightness of pixels via vector math.  It compares
-                                           // the normal vector at that pixel to the vectors toward the camera and light sources.
-          // *** How Shaders Work:
-                                           // The "vertex_glsl_code" string below is code that is sent to the graphics card at runtime, 
-                                           // where on each run it gets compiled and linked there.  Thereafter, all of your calls to draw 
-                                           // shapes will launch the vertex shader program once per vertex in the shape (three times per 
-                                           // triangle), sending results on to the next phase.  The purpose of this vertex shader program 
-                                           // is to calculate the final resting place of vertices in screen coordinates; each vertex 
-                                           // starts out in local object coordinates and then undergoes a matrix transform to get there.
-                                           //
-                                           // Likewise, the "fragment_glsl_code" string is used as the Fragment Shader program, which gets 
-                                           // sent to the graphics card at runtime.  The fragment shader runs once all the vertices in a 
-                                           // triangle / element finish their vertex shader programs, and thus have finished finding out 
-                                           // where they land on the screen.  The fragment shader fills in (shades) every pixel (fragment) 
-                                           // overlapping where the triangle landed.  It retrieves different values (such as vectors) that 
-                                           // are stored at three extreme points of the triangle, and then interpolates the values weighted 
-                                           // by the pixel's proximity to each extreme point, using them in formulas to determine color.
-                                           // The fragment colors may or may not become final pixel colors; there could already be other 
-                                           // triangles' fragments occupying the same pixels.  The Z-Buffer test is applied to see if the 
-                                           // new triangle is closer to the camera, and even if so, blending settings may interpolate some 
-                                           // of the old color into the result.  Finally, an image is displayed onscreen.
+class Phong_Shader1 extends Phong_Shader 
 { material( color, properties )     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
   { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
       { constructor( shader, color = Color.of( 0,0,0,1 ), ambient = 0, diffusivity = 1, specularity = 1, smoothness = 40 )
@@ -418,6 +400,7 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
         varying vec4 VERTEX_COLOR;            // pixel fragment's proximity to each of the 3 vertices (barycentric interpolation).
         varying vec3 L[N_LIGHTS], H[N_LIGHTS];
         varying float dist[N_LIGHTS];
+        varying vec4 shadowPos;
         
         vec3 phong_model_lights( vec3 N )
           { vec3 result = vec3(0.0);
@@ -441,8 +424,17 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
         uniform mat4 camera_transform, camera_model_transform, projection_camera_model_transform;
         uniform mat3 inverse_transpose_modelview;
 
+        uniform mat4 lightMVP;
+ 
+        const mat4 biasMatrix = mat4(0.5, 0.0, 0.0, 0.0, 
+                                     0.0, 0.5, 0.0, 0.0, 
+                                     0.0, 0.0, 0.5, 0.0, 
+                                     0.5, 0.5, 0.5, 1.0);
+
         void main()
         { gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
+          shadowPos = biasMatrix * lightMVP * vec4(object_space_pos, 1.0);
+
           N = normalize( inverse_transpose_modelview * normal );                             // The final normal vector in screen space.
           f_tex_coord = tex_coord;                                         // Directly use original texture coords and interpolate between.
           
@@ -466,9 +458,8 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
                                                 : distance( attenuation_factor[i] * -lightPosition[i].xyz, object_space_pos.xyz );
           }
 
-          if( GOURAUD )                   // Gouraud shading mode?  If so, finalize the whole color calculation here in the vertex shader, 
-          {                               // one per vertex, before we even break it down to pixels in the fragment shader.   As opposed 
-                                          // to Smooth "Phong" Shading, where we *do* wait to calculate final color until the next shader.
+          if( GOURAUD )                 
+          {                               
             VERTEX_COLOR      = vec4( shapeColor.xyz * ambient, shapeColor.w);
             VERTEX_COLOR.xyz += phong_model_lights( N );
           }
@@ -479,17 +470,33 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
                                  // Fragments affect the final image or get discarded due to depth.
       return `
         uniform sampler2D texture;
+        
         void main()
         { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
           { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
             return;
-          }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
-                                            // Phong shading is not to be confused with the Phong Reflection Model.
-          vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
-                                                                                      // Compute an initial (ambient) color:
-          if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
-          else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
-          gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
+          }
+
+          vec3 fragmentDepth = shadowPos.xyz;
+          fragmentDepth.y = -fragmentDepth.y;
+          float shadowAcneRemover = 0.01;
+          fragmentDepth.z -= shadowAcneRemover;
+          float texelSize = 1.0 / 256.0;
+  
+          float amountInLight = 0.0;    
+
+          for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+              float texelDepth = texture2D(texture, fragmentDepth.xy + vec2(x, y) * texelSize).z;
+              if (fragmentDepth.z < texelDepth) {
+                amountInLight += 1.0;
+              }
+            }
+          }
+          amountInLight /= 9.0;
+
+          gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+          gl_FragColor.xyz += amountInLight * phong_model_lights( N ); 
         }`;
     }
     // Define how to synchronize our JavaScript's variables to the GPU's:
@@ -532,6 +539,10 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
             CM     =      C.times(  M ),
             PCM    =      P.times( CM ),
             inv_CM = Mat4.inverse( CM ).sub_block([0,0], [3,3]);
+      let [ LP, LC, LM ]    = [ Mat4.orthographic( -40, 40, -40, 40, -10, 20 ), Mat4.look_at( g_state.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ), model_transform ],
+            LCM     =      LC.times(  LM ),
+            LPCM    =      LP.times( LCM );
+            
                                                                   // Send the current matrices to the shader.  Go ahead and pre-compute
                                                                   // the products we'll need of the of the three special matrices and just
                                                                   // cache and send those.  They will be the same throughout this draw
@@ -540,6 +551,8 @@ class Shadow_Shader extends Shader          // THE DEFAULT SHADER: This uses the
       gl.uniformMatrix4fv( gpu.camera_transform_loc,                  false, Mat.flatten_2D_to_1D(     C .transposed() ) );
       gl.uniformMatrix4fv( gpu.camera_model_transform_loc,            false, Mat.flatten_2D_to_1D(     CM.transposed() ) );
       gl.uniformMatrix4fv( gpu.projection_camera_model_transform_loc, false, Mat.flatten_2D_to_1D(    PCM.transposed() ) );
-      gl.uniformMatrix3fv( gpu.inverse_transpose_modelview_loc,       false, Mat.flatten_2D_to_1D( inv_CM              ) );       
+      gl.uniformMatrix3fv( gpu.inverse_transpose_modelview_loc,       false, Mat.flatten_2D_to_1D( inv_CM              ) ); 
+
+      gl.uniformMatrix4fv( gpu.lightMVP_loc,                          false, Mat.flatten_2D_to_1D(   LPCM.transposed() ) );      
     }
 }
