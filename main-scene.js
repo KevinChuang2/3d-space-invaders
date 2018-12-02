@@ -62,8 +62,9 @@ class Space_Invaders_Scene extends Scene_Component
         this.spawnHeight = 10;
         this.fallRate = .025;
         this.enemySpeed = 0.02;
-
-        this.gameOver = false;
+        
+        this.gameOver = true;
+        this.gameStart = false;
         this.sound = {};
         this.init_sounds(); 
         this.context = context;
@@ -310,14 +311,24 @@ class Space_Invaders_Scene extends Scene_Component
       }
       restart_game()
       {
-            if(this.gameOver)
-            {
-                  this.score = 0;
-                  this.gameOver=false;
-                  this.enemy_pos = [];
-                  this.laser_pos = [];
-            }
-            
+          if(this.gameStart)
+          {
+
+                if(this.gameOver)
+                {
+                      this.score = 0;
+                      this.gameOver=false;
+                      this.enemy_pos = [];
+                      this.laser_pos = [];
+                }
+          }
+          else
+          {
+              var element = document.getElementById("startScreen");
+              element. parentNode.removeChild(element);
+              this.gameStart = true;
+              this.gameOver=false;
+          }
       }
       
 
