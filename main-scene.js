@@ -42,6 +42,8 @@ class Space_Invaders_Scene extends Scene_Component
             ground: context.get_instance( Phong_Shader1 ).material( Color.of( 0.15, 0.07, 0.01, 1 ), { ambient:0.2, specularity:0} ),
             player_base: context.get_instance( Phong_Shader1 ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
             player_turret: context.get_instance( Phong_Shader1 ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
+            player_base_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
+            player_turret_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 1, 0, 0, 1 ), { ambient:1, specularity:0, diffusivity:0 }),
 
             invader1_shadow: context.get_instance( Shadow_Shader ).material(), //make intermediate models
@@ -75,9 +77,11 @@ class Space_Invaders_Scene extends Scene_Component
         this.turnRight=false;
         this.gameOver = true;
         this.gameStart = false;
+        this.tookDamage=false;
         this.sound = {};
         this.init_sounds(); 
         this.context = context;
+
       }
     make_control_panel()
       { 
@@ -92,9 +96,9 @@ class Space_Invaders_Scene extends Scene_Component
         if(!this.gameOver)
         {
           if(this.turnLeft)
-            this.target_angle+=0.07;
+            this.target_angle+=0.055;
           if(this.turnRight)
-            this.target_angle-=0.07;
+            this.target_angle-=0.055;
         }
         
         this.smooth_camera();
@@ -151,12 +155,28 @@ class Space_Invaders_Scene extends Scene_Component
 
         //player
         model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base.override( { texture: this.texture } ) );
+        if(!this.tookDamage)
+          {
+            this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base.override( { texture: this.texture } ) );
+          }
+        else
+          {
+            this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base_red.override( { texture: this.texture } ) );
+          }
         turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                 .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                 .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret.override( { texture: this.texture } ) );
-       
+        if(!this.tookDamage)
+          {
+            this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret.override( { texture: this.texture } ) );
+          }
+        else
+          {
+            this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret_red.override( { texture: this.texture } ) );
+            this.tookDamage=false;
+          }
+        
+
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
                                          .times( Mat4.translation([0,0.03,0]) );
@@ -185,7 +205,7 @@ class Space_Invaders_Scene extends Scene_Component
         }
         if(!this.gameOver)
         {
-            this.update_enemy_pos();
+            this.update_enemy_pos(graphics_state);
             this.update_laser_pos();
             this.spawn_enemies(dt);
         }
@@ -268,7 +288,7 @@ class Space_Invaders_Scene extends Scene_Component
             }
             return false;
       }
-      update_enemy_pos( ){
+      update_enemy_pos( graphics_state ){
           for (let i=0; i<this.enemy_pos.length; i++){
               if(this.enemy_pos[i][2]>3)
               {
@@ -278,7 +298,7 @@ class Space_Invaders_Scene extends Scene_Component
               else if(this.enemy_pos[i][0] < 2.0)
               {
                   
-                  this.player_got_hit();
+                  this.player_got_hit(graphics_state);
                   
                   //dont move
                   this.enemy_pos.splice(i,1);
@@ -291,13 +311,14 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
-      player_got_hit()
+      player_got_hit(graphics_state)
       {
         const newAudio = this.sound.damage.cloneNode()
         newAudio.play();
         this.health--;
         if(this.health <=0)
            this.gameOver=true;
+        this.tookDamage=true;
 
       }
       spawn_enemies(dt){
