@@ -84,8 +84,6 @@ class Space_Invaders_Scene extends Scene_Component
         this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.target_angle -= 0.1 );
         this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
         this.key_triggered_button( "Restart (when dead)", ["p"], () => this.restart_game());
-        this.result_img = this.control_panel.appendChild( Object.assign( document.createElement( "img" ), 
-                { style:"width:200px; height:" + 200 * this.aspect_ratio + "px" } ) );
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
@@ -131,7 +129,7 @@ class Space_Invaders_Scene extends Scene_Component
         }
 
         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
-        this.texture.image.src = this.result_img.src = this.scratchpad.toDataURL("image/png");
+        this.texture.image.src = this.scratchpad.toDataURL("image/png");
         this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
 
         // ------------------------------------------------------------------------------------------------------------
@@ -204,6 +202,7 @@ class Space_Invaders_Scene extends Scene_Component
       init_sounds(){
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
         this.sound.laser.load();
+        this.sound.laser.playbackRate = 2.5;
         this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
         this.sound.hit.load();
       }
@@ -309,7 +308,7 @@ class Space_Invaders_Scene extends Scene_Component
       }
       restart_game()
       {
-          if(this.gameStart)
+            if(this.gameStart)
           {
 
                 if(this.gameOver)
@@ -325,7 +324,7 @@ class Space_Invaders_Scene extends Scene_Component
               var element = document.getElementById("startScreen");
               element. parentNode.removeChild(element);
               this.gameStart = true;
-              this.gameOver=false;
+              this.gameOver = false;
           }
             
       }
