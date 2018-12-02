@@ -53,6 +53,7 @@ class Space_Invaders_Scene extends Scene_Component
             ground_shadow: context.get_instance( Shadow_Shader ).material(),
             player_base_shadow: context.get_instance( Shadow_Shader ).material(),
             player_turret_shadow: context.get_instance( Shadow_Shader ).material(),
+            laser_shadow: context.get_instance(Shadow_Shader).material()
          
           }
         //lightzzz
@@ -138,7 +139,7 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );                               
-            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser_shadow );
         }
 
         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
@@ -201,7 +202,7 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );
-            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser.override({texture:this.texture}) );
         }
         if(!this.gameOver)
         {
