@@ -66,12 +66,13 @@ class Space_Invaders_Scene extends Scene_Component
         this.spawnAngle = 0;
         this.score = 0;
         this.maxSpawn = 15;
-
+        this.health =3;
         this.spawnDistance = 20;
         this.spawnHeight = 10;
         this.fallRate = .025;
         this.enemySpeed = 0.02;
-
+        this.turnLeft = false;
+        this.turnRight=false;
         this.gameOver = true;
         this.gameStart = false;
         this.sound = {};
@@ -80,14 +81,22 @@ class Space_Invaders_Scene extends Scene_Component
       }
     make_control_panel()
       { 
-        this.key_triggered_button( "Rotate Left",  [ "a" ], () => this.target_angle += 0.1 );
-        this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.target_angle -= 0.1 );
+        this.key_triggered_button( "Rotate Left",  [ "a" ], () => this.turnLeft = true, undefined , ()=>this.turnLeft=false );
+        this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.turnRight=true, undefined, ()=>this.turnRight=false );
         this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
         this.key_triggered_button( "Restart (when dead)", ["p"], () => this.restart_game());
       }
     display( graphics_state )
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+        if(!this.gameOver)
+        {
+          if(this.turnLeft)
+            this.target_angle+=0.07;
+          if(this.turnRight)
+            this.target_angle-=0.07;
+        }
+        
         this.smooth_camera();
 
         //draw scene from lights perspective
@@ -188,6 +197,9 @@ class Space_Invaders_Scene extends Scene_Component
             var score = document.getElementById("score");
             score.innerHTML = this.score;
             var gameOver = document.getElementById("gameover");
+            var health = document.getElementById("health");
+            health.style.color = "#FF0000";
+            health.innerHTML = "♥ ".repeat(this.health);
             if(this.gameOver)
             {
                   
@@ -262,7 +274,10 @@ class Space_Invaders_Scene extends Scene_Component
               //check collision here
               else if(this.enemy_pos[i][0] < 2.0)
               {
-                  this.gameOver=true;
+                  this.health--;
+                  this.player_blink_red();
+                  if(this.health <=0)
+                    this.gameOver=true;
                   //dont move
                   this.enemy_pos.splice(i,1);
                   i--;
@@ -273,6 +288,10 @@ class Space_Invaders_Scene extends Scene_Component
               }
               
           }
+      }
+      player_blink_red()
+      {
+      
       }
       spawn_enemies(dt){
            if(this.enemy_pos.length < this.maxSpawn)
@@ -293,8 +312,8 @@ class Space_Invaders_Scene extends Scene_Component
                 
              
            }
-           this.maxSpawn = Math.floor(this.score/50) + 15;
-           this.spawnRate = 2.0 - Math.floor(this.score/50)/6;
+           this.maxSpawn = Math.floor(this.score/30) + 15;
+           this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
       }
       shoot_laser(){
           if(this.sound.laser.paused && !this.gameOver){
@@ -310,10 +329,10 @@ class Space_Invaders_Scene extends Scene_Component
       {
             if(this.gameStart)
           {
-
                 if(this.gameOver)
                 {
                       this.score = 0;
+                      this.health=3;
                       this.gameOver=false;
                       this.enemy_pos = [];
                       this.laser_pos = [];
