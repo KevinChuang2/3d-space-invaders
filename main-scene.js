@@ -5,7 +5,7 @@ class Space_Invaders_Scene extends Scene_Component
         //if( !context.globals.has_controls   ) 
           //context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
-        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,10,1 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
+        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,4,10 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) );
 
         const r = context.width/context.height;
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
@@ -71,7 +71,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.spawnHeight = 10;
         this.fallRate = .025;
         this.enemySpeed = 0.02;
-        
+
         this.gameOver = true;
         this.gameStart = false;
         this.sound = {};
@@ -96,7 +96,6 @@ class Space_Invaders_Scene extends Scene_Component
         graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ); 
 
         //player
-
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
         this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base_shadow );
         let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
@@ -128,21 +127,15 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );                               
-            this.shapes.laser.draw( graphics_state, model_transform, this.materials.lasera );
+            this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
         }
 
         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
         this.texture.image.src = this.result_img.src = this.scratchpad.toDataURL("image/png");
-        
-        this.webgl_manager.gl.bindFramebuffer(this.webgl_manager.gl.FRAMEBUFFER, null);
-        this.webgl_manager.gl.clearColor(0.98, 0.98, 0.98, 1);
         this.webgl_manager.gl.clear( this.webgl_manager.gl.COLOR_BUFFER_BIT | this.webgl_manager.gl.DEPTH_BUFFER_BIT);
-
-        
 
         // ------------------------------------------------------------------------------------------------------------
         //draw scene from camera perspective
-        graphics_state.lights = [this.lights[0]];
 
         //update camera position
         turret = turret.times( Mat4.translation([0, 15, 20]) )
@@ -334,8 +327,8 @@ class Space_Invaders_Scene extends Scene_Component
               this.gameStart = true;
               this.gameOver=false;
           }
+            
       }
-      
 
   }
 
