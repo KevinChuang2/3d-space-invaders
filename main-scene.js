@@ -33,7 +33,7 @@ class Space_Invaders_Scene extends Scene_Component
 
         this.materials =
           { 
-            skybox: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient:0.4, texture:  context.get_instance( "assets/img/skybox.png", false )} ),
+            skybox: context.get_instance( Texture_Rotate ).material( Color.of( 0,0,0,1 ), { ambient:0.4, texture:  context.get_instance( "assets/img/skybox.png", false )} ),
 
             invader1: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
             invader2: context.get_instance( Phong_Shader1 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
@@ -383,6 +383,42 @@ class Space_Invaders_Scene extends Scene_Component
       }
 
   }
+
+class Texture_Rotate extends Phong_Shader
+{ fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
+    {
+      // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
+      return `
+        uniform sampler2D texture;
+        void main()
+        { if( GOURAUD || COLOR_NORMALS )    // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
+          { gl_FragColor = VERTEX_COLOR;    // Otherwise, we already have final colors to smear (interpolate) across vertices.            
+            return;
+          }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
+                                            // Phong shading is not to be confused with the Phong Reflection Model.
+
+          mat3 trans_matrix = mat3(1.0, 0.0, 0.5,
+                                   0.0, 1.0, 0.5,
+                                   0.0, 0.0, 1.0);
+          mat3 trans2_matrix = mat3(1.0, 0.0, -0.5,
+                                    0.0, 1.0, -0.5,
+                                    0.0, 0.0, 1.0);
+
+          float PI = 3.1415926535897932384626433832795;
+          float angle = 0.07*(floor(animation_time) - 2.0 * floor(animation_time/2.0));
+          mat3 rot_matrix = mat3(cos(angle), sin(angle), 0.0, 
+                                -sin(angle), cos(angle), 0.0, 
+                                 0.0, 0.0, 1.0);
+
+          vec3 r_tex_coord = vec3(f_tex_coord, 1.0) * trans2_matrix * rot_matrix * trans_matrix;  
+          vec4 tex_color = texture2D( texture, vec2(r_tex_coord.x, r_tex_coord.y ));                         // Sample the texture image in the correct place.
+                                                                                      // Compute an initial (ambient) color:
+          if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w ); 
+          else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+          gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
+        }`;
+    }
+}
 
 class Shadow_Shader extends Shader
 { material()     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
