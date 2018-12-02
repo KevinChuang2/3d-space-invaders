@@ -213,6 +213,7 @@ class Space_Invaders_Scene extends Scene_Component
             this.update_enemy_pos(graphics_state);
             this.update_laser_pos();
             this.spawn_enemies(dt);
+            this.sound.bgm.play();
         }
         this.displayUI();
       }
@@ -245,7 +246,11 @@ class Space_Invaders_Scene extends Scene_Component
         this.sound.hit.load();
         this.sound.damage = new Audio('assets/sound/punch_or_whack_-Vladimir-403040765.wav');
         this.sound.damage.currentTime = .2;
+        this.sound.laser.playbackRate = 1.5;
         this.sound.damage.load();
+        this.sound.bgm = new Audio('assets/sound/BGM.wav');
+        this.sound.bgm.load();
+        this.sound.bgm.loop = true;
       }
       smooth_camera()
       {
