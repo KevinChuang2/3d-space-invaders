@@ -18,9 +18,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.texture = new Texture ( context.gl, "", false, false );        // Initial image source: Blank gif file
         this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-        const shapes = { box:   new Cube(),
-                         box_2: new Cube(),
-                         axis:  new Axis_Arrows(),
+        const shapes = { skybox:   new Cube(),
                          laser: new Rounded_Capped_Cylinder(10,10),
                          invader1: new Shape_From_File( "/assets/models/invader1.obj" ),
                          invader2: new Shape_From_File( "/assets/models/invader2.obj" ),
@@ -35,6 +33,8 @@ class Space_Invaders_Scene extends Scene_Component
 
         this.materials =
           { 
+            skybox: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient:0.4, texture:  context.get_instance( "assets/img/skybox.png", false )} ),
+
             invader1: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
             invader2: context.get_instance( Phong_Shader1 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
             invader3: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
@@ -153,6 +153,10 @@ class Space_Invaders_Scene extends Scene_Component
         turret = turret.times( Mat4.translation([0, 15, 20]) )
                        .times( Mat4.rotation( -0.5, Vec.of(1,0,0) ) );                                         
         graphics_state.camera_transform = Mat4.inverse( turret );
+
+        //skybox
+        model_transform = Mat4.identity().times( Mat4.scale( [100,100,100] ));
+        this.shapes.skybox.draw( graphics_state, model_transform, this.materials.skybox );
 
         //player
         model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
