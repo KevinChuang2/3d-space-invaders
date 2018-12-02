@@ -39,7 +39,7 @@ class Space_Invaders_Scene extends Scene_Component
             invader2: context.get_instance( Phong_Shader1 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
             invader3: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.078,.686,1 ), { ambient:0.4} ),
             invader4: context.get_instance( Phong_Shader1 ).material( Color.of( .078,1,.855,1 ), { ambient:0.4} ),
-            ground: context.get_instance( Phong_Shader1 ).material( Color.of( 0.15, 0.07, 0.01, 1 ), { ambient:0.2, specularity:0} ),
+            ground: context.get_instance( Phong_Shader1 ).material( Color.of( 0.25, 0.20, 0.15, 1 ), { ambient:0.2, specularity:0} ),
             player_base: context.get_instance( Phong_Shader1 ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
             player_turret: context.get_instance( Phong_Shader1 ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
             player_base_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
@@ -272,15 +272,46 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
+      orientation(p, q, r) { 
+        let val = (q.y - p.y) * (r.x - q.x) - 
+                  (q.x - p.x) * (r.y - q.y); 
+
+        if (val == 0) return 0;  // colinear 
+
+        return (val > 0)? 1: 2; // clock or counterclock wise 
+      }
+      doIntersect(p1, q1, p2, q2) { 
+        // Find the four orientations needed
+        let o1 = this.orientation(p1, q1, p2); 
+        let o2 = this.orientation(p1, q1, q2); 
+        let o3 = this.orientation(p2, q2, p1); 
+        let o4 = this.orientation(p2, q2, q1); 
+
+        // General case 
+        if (o1 != o2 && o3 != o4) 
+            return true; 
+
+        return false;
+      } 
+
       check_laser_hit( radius, angle ){
+            // calculate start and end points of laser segment
+            const l1 = {x: (radius-1)*Math.sin(angle), y: (radius-1)*Math.cos(angle)};
+            const l2 = {x: (radius+1)*Math.sin(angle), y: (radius+1)*Math.cos(angle)};
+
             const real_pos = [radius*Math.sin(angle), radius*Math.cos(angle)];
             var collision = false;
             for (let j=0; j<this.enemy_pos.length && !collision; j++){
+
                 const r = this.enemy_pos[j][0];
                 const a = this.enemy_pos[j][1];
-                const rp = [r*Math.sin(a), r*Math.cos(a)];
-                const dist = (rp[0]-real_pos[0])**2+(rp[1]-real_pos[1])**2;
-                if(dist<2.7){
+
+                const invtan = Math.atan(1/r);
+                const hyp = Math.sqrt(r**2+1);
+                // calculate start and end points of enemy front face segment
+                const e1 = {x: hyp*Math.sin(a-invtan), y: hyp*Math.cos(a-invtan)};
+                const e2 = {x: hyp*Math.sin(a+invtan), y: hyp*Math.cos(a+invtan)};
+                if(this.doIntersect(l1, l2, e1, e2)){
                     //collision
                     const newAudio = this.sound.hit.cloneNode()
                     newAudio.play();
