@@ -4,9 +4,10 @@
 ![alt text](assets/img/invader.png "Space Invaders")
 
 ## Summary
-A homage to the classic game Space Invaders. The player defends a fortress that is armed with a laser with which to shoot the space invaders. The invaders will circle in on the player as depicted below.
-The goal of the game is to eliminate enemies and avoid taking damage for as long as possible in order to get the highest score. 
-The invaders can damage the player via direct contact or poisonous balls of goo, the later of which the player must put up a shield for to avoid taking damage.
+A homage to the classic game Space Invaders. The player defends a fortress that is armed with a laser with which to shoot the space invaders. 
+The invaders will circle in on the player as depicted below.
+The goal of the game is to eliminate the invaders and avoid taking damage for as long as possible in order to get the highest score. 
+The invaders can damage the player via direct contact or poisonous balls of goo, the latter of which the player must put up a shield for to avoid taking damage.
 
 ![alt text](assets/img/action_shot.png "3d space invaders gameplay in action")
 

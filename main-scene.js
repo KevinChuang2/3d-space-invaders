@@ -40,6 +40,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.materials =
           { 
             skybox: context.get_instance( Texture_Rotate ).material( Color.of( 0,0,0,1 ), { ambient:0.4, texture:  context.get_instance( "assets/img/skybox.png", false )} ),
+            skybox1: context.get_instance( Phong_Shader ).material( Color.of( 0,0,0,1 ), { ambient:0.4, texture:  context.get_instance( "assets/img/skybox.png", false )} ),
 
             invader1: context.get_instance( Phong_Shader1 ).material( Color.of( 1,.855,.078,1 ), { ambient:0.4} ), //make intermediate models
             invader2: context.get_instance( Phong_Shader1 ).material( Color.of( .224,1,.078,1 ), { ambient:0.4} ),
@@ -160,7 +161,10 @@ class Space_Invaders_Scene extends Scene_Component
 
         //skybox
         model_transform = Mat4.identity().times( Mat4.scale( [100,100,100] ));
-        this.shapes.skybox.draw( graphics_state, model_transform, this.materials.skybox );
+        if (!this.gameOver)
+            this.shapes.skybox.draw( graphics_state, model_transform, this.materials.skybox );
+        else
+            this.shapes.skybox.draw( graphics_state, model_transform, this.materials.skybox1 );
 
         //player
         model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
