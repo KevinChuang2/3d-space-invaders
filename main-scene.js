@@ -290,12 +290,17 @@ class Space_Invaders_Scene extends Scene_Component
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
         this.sound.laser.load();
         this.sound.laser.playbackRate = 1.5;
+
         this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
         this.sound.hit.load();
+
+        this.sound.splat = new Audio('assets/sound/232135__yottasounds__splat-005.wav');
+        this.sound.splat.load();
+
         this.sound.damage = new Audio('assets/sound/punch_or_whack_-Vladimir-403040765.wav');
         this.sound.damage.currentTime = .2;
-        this.sound.laser.playbackRate = 1.5;
         this.sound.damage.load();
+
         this.sound.bgm = new Audio('assets/sound/BGM.wav');
         this.sound.bgm.load();
         this.sound.bgm.loop = true;
@@ -352,6 +357,8 @@ class Space_Invaders_Scene extends Scene_Component
                       this.bullet_pos.splice(i,1);
                       i--;
                       //play block sound
+                      const newAudio = this.sound.splat.cloneNode()
+                        newAudio.play();
                   } else {
                       // not blocked, move as normal
                       this.bullet_pos[i][0] -= 0.08;
