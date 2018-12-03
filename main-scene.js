@@ -48,51 +48,35 @@ class Space_Invaders_Scene extends Scene_Component
             ground: context.get_instance( Phong_Shader1 ).material( Color.of( 0.25, 0.20, 0.15, 1 ), { ambient:0.2, specularity:0} ),
             player_base: context.get_instance( Phong_Shader1 ).material( Color.of( 0.80, 0.80, 0.80, 1 ) ),
             player_turret: context.get_instance( Phong_Shader1 ).material( Color.of( 0.70, 0.70, 0.70, 1 ) ),
-            player_base_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
-            player_turret_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 221/255, 0, 72/255, 0.9 ), { ambient:1, specularity:0, diffusivity:0 }),
             shield: context.get_instance( Phong_Shader ).material( Color.of( 0.1, 0.1, 0.9, 0.5 ) ),
 
-            invader1_shadow: context.get_instance( Shadow_Shader ).material(), //make intermediate models
-            invader2_shadow: context.get_instance( Shadow_Shader ).material(),
-            invader3_shadow: context.get_instance( Shadow_Shader ).material(),
-            invader4_shadow: context.get_instance( Shadow_Shader ).material(),
-            ground_shadow: context.get_instance( Shadow_Shader ).material(),
-            player_base_shadow: context.get_instance( Shadow_Shader ).material(),
-            player_turret_shadow: context.get_instance( Shadow_Shader ).material(),
-            laser_shadow: context.get_instance(Shadow_Shader).material()
+            shadow: context.get_instance( Shadow_Shader ).material()
          
           }
-        //lightzzz
+
         this.lights = [ new Light( Vec.of( 0,5,1,0 ), Color.of( 0,1,1,1 ), 100000), new Light( Vec.of( 0,6,0,1 ), Color.of( 0,1,1,1 ), 10000000) ];
-        this.enemy_pos = [ ];
-        this.laser_pos = [ ];
-        this.bullet_pos = [ ];
-        this.camera_angle = 0;
-        this.target_angle = 0;
-        //how many seconds in between each spawn 
-        this.spawnRate = 2.0;
-        this.spawnTime = 0;
-        //angle in which we spawn new enemy 
-        this.spawnAngle = 0;
-        this.score = 0;
+        
+        this.enemy_pos = [ ], this.laser_pos = [ ], this.bullet_pos = [ ];
+        this.camera_angle = 0, this.target_angle = 0;
+        this.spawnRate = 2.0, this.spawnTime = 0, this.fallRate = .025, this.enemySpeed = 0.02;
+        this.spawnAngle = 0, this.spawnDistance = 20, this.spawnHeight = 10;
         this.maxSpawn = 15;
-        this.health =3;
-        this.spawnDistance = 20;
-        this.spawnHeight = 10;
-        this.fallRate = .025;
-        this.enemySpeed = 0.02;
+        
+        this.score = 0;
+        this.health = 3;  
+        this.tookDamage=false; 
+        
         this.turnLeft = false;
-        this.turnRight=false;
+        this.turnRight= false;
+        this.shieldUp = false;
+
         this.gameOver = true;
         this.gameStart = false;
-        this.tookDamage=false;
+        
         this.sound = {};
         this.init_sounds(); 
         this.context = context;
-
-        this.shieldUp = false;
-
       }
     make_control_panel()
       { 
@@ -105,6 +89,7 @@ class Space_Invaders_Scene extends Scene_Component
     display( graphics_state )
       { graphics_state.lights = [ this.lights[1] ];        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+        
         if(!this.gameOver)
         {
           if(this.turnLeft)
@@ -115,21 +100,22 @@ class Space_Invaders_Scene extends Scene_Component
         
         this.smooth_camera();
 
+        // ------------------------------------------------------------------------------------------------------------
         //draw scene from lights perspective
         graphics_state.camera_transform = Mat4.look_at( this.lights[0].position, Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ); 
 
         //player
         let model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base_shadow );
+        this.shapes.player_base.draw( graphics_state, model_transform, this.materials.shadow );
         let turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                     .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                     .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
-        this.shapes.player_turret.draw( graphics_state, turret, this.materials.player_turret_shadow );
+        this.shapes.player_turret.draw( graphics_state, turret, this.materials.shadow );
         
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
                                          .times( Mat4.translation([0,0.03,0]) );
-        this.shapes.ground.draw( graphics_state, model_transform, this.materials.ground_shadow );
+        this.shapes.ground.draw( graphics_state, model_transform, this.materials.shadow );
 
         //enemies
         for (let i=0; i<this.enemy_pos.length; i++) {
@@ -139,26 +125,26 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.scale( [0.7,0.7,0.7] ) );
             let rand_index = this.enemy_pos[i][3];
             if (Math.floor(t) % 2 || this.gameOver) {
-                if (rand_index == 1) { this.shapes.invader1_1.draw( graphics_state, model_transform, this.materials.invader1_shadow ); } 
-                else if (rand_index == 2) { this.shapes.invader2_1.draw( graphics_state, model_transform, this.materials.invader2_shadow ); } 
-                else if (rand_index == 3) { this.shapes.invader3_1.draw( graphics_state, model_transform, this.materials.invader3_shadow ); } 
-                else { this.shapes.invader4_1.draw( graphics_state, model_transform, this.materials.invader4_shadow ); }
+                if (rand_index == 1) { this.shapes.invader1_1.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else if (rand_index == 2) { this.shapes.invader2_1.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else if (rand_index == 3) { this.shapes.invader3_1.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else { this.shapes.invader4_1.draw( graphics_state, model_transform, this.materials.shadow ); }
             } else {
-                if (rand_index == 1) { this.shapes.invader1_2.draw( graphics_state, model_transform, this.materials.invader1_shadow ); } 
-                else if (rand_index == 2) { this.shapes.invader2_2.draw( graphics_state, model_transform, this.materials.invader2_shadow ); } 
-                else if (rand_index == 3) { this.shapes.invader3_2.draw( graphics_state, model_transform, this.materials.invader3_shadow ); } 
-                else { this.shapes.invader4_2.draw( graphics_state, model_transform, this.materials.invader4_shadow ); }
+                if (rand_index == 1) { this.shapes.invader1_2.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else if (rand_index == 2) { this.shapes.invader2_2.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else if (rand_index == 3) { this.shapes.invader3_2.draw( graphics_state, model_transform, this.materials.shadow ); } 
+                else { this.shapes.invader4_2.draw( graphics_state, model_transform, this.materials.shadow ); }
             }
         }
 
-        //lasers
-//         for (let i=0; i<this.laser_pos.length; i++){
-//             model_transform = Mat4.identity().times( Mat4.rotation( this.laser_pos[i][1], Vec.of(0,1,0) ) )
-//                                              .times( Mat4.translation( [this.laser_pos[i][0],3.4,0] ) )
-//                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
-//                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );                               
-//             this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser_shadow );
-//         }
+        //bullets
+        for (let i=0; i<this.bullet_pos.length; i++){
+            model_transform = Mat4.identity().times( Mat4.rotation( this.bullet_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.bullet_pos[i][0],3.4,0] ) )
+                                             .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
+                                             .times( Mat4.scale( [0.5, 0.5, 0.5] ) );                             
+            this.shapes.bullet.draw( graphics_state, model_transform, this.materials.shadow );
+        }
 
         this.scratchpad_context.drawImage( this.webgl_manager.canvas, 0, 0, 256, 256 );
         this.texture.image.src = this.scratchpad.toDataURL("image/png");
@@ -251,6 +237,7 @@ class Space_Invaders_Scene extends Scene_Component
             else { bullet = bullet.override( { color: Color.of( .0,.7,.755,0.6 ) } ); }                                 
             this.shapes.bullet.draw( graphics_state, model_transform, bullet);
         }
+
         if(!this.gameOver)
         {
             this.update_enemy_pos();
@@ -266,7 +253,7 @@ class Space_Invaders_Scene extends Scene_Component
         }
         this.displayUI();
       }
-      //AUXILIARY FUNCTIONS
+      //displays score and life information
       displayUI()
       {
             var score = document.getElementById("score");
@@ -287,6 +274,7 @@ class Space_Invaders_Scene extends Scene_Component
             }
 
       }
+      //initializes sounds 
       init_sounds(){
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
         this.sound.laser.load();
@@ -318,10 +306,12 @@ class Space_Invaders_Scene extends Scene_Component
         this.sound.gameOver.load();
         this.sound.gameOver.loop = true;
       }
+      //smooths camera position transitions
       smooth_camera()
       {
           this.camera_angle = this.camera_angle + (this.target_angle - this.camera_angle) * .2;
       }
+      //generates position of the laser for the next frame
       update_laser_pos( ){
           for (let i=0; i<this.laser_pos.length; i++){
               const radius = this.laser_pos[i][0];
@@ -343,6 +333,7 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
+      //generates positions of enemy "bullets" (poisonous goo) for the next frame
       update_bullet_pos( ){
           for (let i=0; i<this.bullet_pos.length; i++){
               const radius = this.bullet_pos[i][0];
@@ -358,9 +349,6 @@ class Space_Invaders_Scene extends Scene_Component
               } else if(radius < 4 && radius > 3 && this.shieldUp){
                   //check if shield blocks
                   const shield_ang = this.camera_angle + Math.PI/2;
-                  //console.log(shield_ang);
-                  //console.log(angle%(2*Math.PI));
-
                   const anglediff = (shield_ang%(2*Math.PI) - angle%(2*Math.PI) + Math.PI + 2*Math.PI) % (2*Math.PI) - Math.PI;
 
                   if (anglediff <= Math.PI/4 && anglediff >= -Math.PI/4){
@@ -368,16 +356,14 @@ class Space_Invaders_Scene extends Scene_Component
                       i--;
                       //play block sound
                       const newAudio = this.sound.splat.cloneNode()
-                        newAudio.play();
-                  } else {
-                      // not blocked, move as normal
+                      newAudio.play();
+                  } 
+                  else // not blocked, move as normal
                       this.bullet_pos[i][0] -= 0.08;
-                  }
 
-              } else{
+              } 
+              else
                   this.bullet_pos[i][0] -= 0.08;
-              }
-              
           }
       }
 
@@ -402,7 +388,7 @@ class Space_Invaders_Scene extends Scene_Component
 
         return false;
       } 
-
+      //checks if laser has hit an enemy
       check_laser_hit( radius, angle ){
             // calculate start and end points of laser segment
             const l1 = {x: (radius-1)*Math.sin(angle), y: (radius-1)*Math.cos(angle)};
@@ -438,6 +424,7 @@ class Space_Invaders_Scene extends Scene_Component
             }
             return false;
       }
+      //generates enemy positions for the next frame, as well as spawns enemy "bullets"
       update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
               if(this.enemy_pos[i][2]>3)
@@ -468,6 +455,7 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
+      //updates player status after a hit
       player_got_hit()
       {
         const newAudio = this.sound.damage.cloneNode();
@@ -478,6 +466,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.tookDamage=true;
 
       }
+      //spawns enemies if spawn requirements have been met
       spawn_enemies(dt){
            if(this.enemy_pos.length < this.maxSpawn)
            {
@@ -500,19 +489,18 @@ class Space_Invaders_Scene extends Scene_Component
            this.maxSpawn = Math.floor(this.score/30) + 15;
            this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
       }
+      //shoots a new laser if possible
       shoot_laser(){
           if(this.sound.laser.paused && !this.gameOver && !this.shieldUp){
             var new_laser = [1, this.camera_angle+Math.PI/2];
             this.laser_pos.push(new_laser);
             this.sound.laser.play()
           }
-//           const newAudio = this.laser_sound.cloneNode()
-//           newAudio.volume = 0.2;
-//           newAudio.play();
       }
       toggle_shield(){
           this.shieldUp = !this.shieldUp;
       }
+      //restarts game if player is dead
       restart_game()
       {
             if(this.gameStart)
@@ -542,10 +530,11 @@ class Space_Invaders_Scene extends Scene_Component
 
   }
 
+
+//wiggles texture of skybox back and forth to simulate twinkling stars
 class Texture_Rotate extends Phong_Shader
 { fragment_glsl_code()           // ********* FRAGMENT SHADER ********* 
     {
-      // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
       return `
         uniform sampler2D texture;
         void main()
@@ -578,6 +567,7 @@ class Texture_Rotate extends Phong_Shader
     }
 }
 
+//renders scene based on depth for shadow mapping 
 class Shadow_Shader extends Shader
 { material()     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
   { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
@@ -627,6 +617,7 @@ class Shadow_Shader extends Shader
     }
 }
 
+//like Phong_Shader, but with shadow mapping
 class Phong_Shader1 extends Phong_Shader 
 { material( color, properties )     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
   { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
@@ -800,12 +791,7 @@ class Phong_Shader1 extends Phong_Shader
       let [ LP, LC, LM ]    = [ Mat4.orthographic( -40, 40, -40, 40, -10, 20 ), Mat4.look_at( Vec.of( 0,5,1,0 ), Vec.of( 0,0,0 ), Vec.of( 0,1,0 ) ), model_transform ],
             LCM     =      LC.times(  LM ),
             LPCM    =      LP.times( LCM );
-            
-                                                                  // Send the current matrices to the shader.  Go ahead and pre-compute
-                                                                  // the products we'll need of the of the three special matrices and just
-                                                                  // cache and send those.  They will be the same throughout this draw
-                                                                  // call, and thus across each instance of the vertex shader.
-                                                                  // Transpose them since the GPU expects matrices as column-major arrays.                                  
+
       gl.uniformMatrix4fv( gpu.camera_transform_loc,                  false, Mat.flatten_2D_to_1D(     C .transposed() ) );
       gl.uniformMatrix4fv( gpu.camera_model_transform_loc,            false, Mat.flatten_2D_to_1D(     CM.transposed() ) );
       gl.uniformMatrix4fv( gpu.projection_camera_model_transform_loc, false, Mat.flatten_2D_to_1D(    PCM.transposed() ) );
