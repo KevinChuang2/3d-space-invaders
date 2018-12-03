@@ -1,6 +1,6 @@
 # 3D Space Invaders
 
-![alt text](invader.jpg "Space Invaders")
+![alt text](invader.JPG "Space Invaders")
 
 ## Summary
 A homage to the classic game Space Invaders. The player rotates on a fixed point has a laser to shoot the space invaders. 
