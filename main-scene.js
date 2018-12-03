@@ -20,8 +20,8 @@ class Space_Invaders_Scene extends Scene_Component
 
         const shapes = { skybox:   new Cube(),
                          laser: new Rounded_Capped_Cylinder(5,5),
-                         bullet: new Subdivision_Sphere(5,5),
-                         shield: new Cube(),
+                         bullet: new Shape_From_File( "/assets/models/goo.obj" ),
+                         shield: new Shape_From_File( "/assets/models/shield.obj" ),
                          invader1_1: new Shape_From_File( "/assets/models/invader1_1.obj" ),
                          invader2_1: new Shape_From_File( "/assets/models/invader2_1.obj" ),
                          invader3_1: new Shape_From_File( "/assets/models/invader3_1.obj" ),
@@ -197,11 +197,14 @@ class Space_Invaders_Scene extends Scene_Component
           }
         //shield
         if(this.shieldUp){
-            model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-            model_transform = model_transform
-                                    .times( Mat4.rotation( this.camera_angle+Math.PI/2, Vec.of(0,1,0) ) )
-                                    .times( Mat4.translation( [5, 0, 0] ) )
-                                    .times( Mat4.scale( [0.5,1,1] ) );
+//             model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
+//             model_transform = model_transform
+//                                     .times( Mat4.rotation( this.camera_angle+Math.PI/2, Vec.of(0,1,0) ) )
+//                                     .times( Mat4.translation( [5, 0, 0] ) )
+//                                     .times( Mat4.scale( [0.5,1,1] ) );
+            model_transform = Mat4.identity().times( Mat4.scale( [1.5,1.5,1.5] ))
+                                         .times(Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) )
+                                         .times( Mat4.translation( [0,1.5,-2] ) );
             this.shapes.shield.draw( graphics_state, model_transform, this.materials.shield );
         }
 
@@ -339,9 +342,21 @@ class Space_Invaders_Scene extends Scene_Component
                   //player gets hit
               } else if(radius < 5 && radius > 4 && this.shieldUp){
                   //check if shield blocks
-                  const shield_ang = (this.camera_angle+Math.PI/2)%(2*Math.PI)
-                  console.log(shield_ang);
-                  console.log(angle%(2*Math.PI));
+                  const shield_ang = this.camera_angle + Math.PI/2;
+                  //console.log(shield_ang);
+                  //console.log(angle%(2*Math.PI));
+
+                  const anglediff = (shield_ang%(2*Math.PI) - angle%(2*Math.PI) + Math.PI + 2*Math.PI) % (2*Math.PI) - Math.PI;
+
+                  if (anglediff <= Math.PI/4 && anglediff >= -Math.PI/4){
+                      this.bullet_pos.splice(i,1);
+                      i--;
+                      //play block sound
+                  } else {
+                      // not blocked, move as normal
+                      this.bullet_pos[i][0] -= 0.08;
+                  }
+
               } else{
                   this.bullet_pos[i][0] -= 0.08;
               }
@@ -490,6 +505,7 @@ class Space_Invaders_Scene extends Scene_Component
                       this.gameOver=false;
                       this.enemy_pos = [];
                       this.laser_pos = [];
+                      this.bullet_pos = [];
                       this.sound.gameOver.pause();
                       this.sound.gameOver.currentTime = 0;
                       this.sound.bgm.currentTime = 0;
