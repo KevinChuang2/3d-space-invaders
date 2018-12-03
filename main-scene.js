@@ -61,7 +61,7 @@ class Space_Invaders_Scene extends Scene_Component
          
           }
         //lightzzz
-        this.lights = [ new Light( Vec.of( 0,5,1,0 ), Color.of( 0,1,1,1 ), 100000), new Light( Vec.of( 0,5,0,1 ), Color.of( 0,1,1,1 ), 1000000) ];
+        this.lights = [ new Light( Vec.of( 0,5,1,0 ), Color.of( 0,1,1,1 ), 100000), new Light( Vec.of( 0,6,0,1 ), Color.of( 0,1,1,1 ), 10000000) ];
         this.enemy_pos = [ ];
         this.laser_pos = [ ];
         this.camera_angle = 0;
