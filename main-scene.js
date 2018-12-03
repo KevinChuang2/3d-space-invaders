@@ -19,7 +19,9 @@ class Space_Invaders_Scene extends Scene_Component
         this.texture.image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
         const shapes = { skybox:   new Cube(),
-                         laser: new Rounded_Capped_Cylinder(10,10),
+                         laser: new Rounded_Capped_Cylinder(5,5),
+                         bullet: new Subdivision_Sphere(5,5),
+                         shield: new Cube(),
                          invader1_1: new Shape_From_File( "/assets/models/invader1_1.obj" ),
                          invader2_1: new Shape_From_File( "/assets/models/invader2_1.obj" ),
                          invader3_1: new Shape_From_File( "/assets/models/invader3_1.obj" ),
@@ -49,6 +51,7 @@ class Space_Invaders_Scene extends Scene_Component
             player_base_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
             player_turret_red: context.get_instance( Phong_Shader1 ).material( Color.of( 1,0,0, 1 ) ),
             laser: context.get_instance( Phong_Shader ).material( Color.of( 221/255, 0, 72/255, 0.9 ), { ambient:1, specularity:0, diffusivity:0 }),
+            shield: context.get_instance( Phong_Shader ).material( Color.of( 0.1, 0.1, 0.9, 0.5 ) ),
 
             invader1_shadow: context.get_instance( Shadow_Shader ).material(), //make intermediate models
             invader2_shadow: context.get_instance( Shadow_Shader ).material(),
@@ -64,6 +67,7 @@ class Space_Invaders_Scene extends Scene_Component
         this.lights = [ new Light( Vec.of( 0,5,1,0 ), Color.of( 0,1,1,1 ), 100000), new Light( Vec.of( 0,6,0,1 ), Color.of( 0,1,1,1 ), 10000000) ];
         this.enemy_pos = [ ];
         this.laser_pos = [ ];
+        this.bullet_pos = [ ];
         this.camera_angle = 0;
         this.target_angle = 0;
         //how many seconds in between each spawn 
@@ -87,12 +91,15 @@ class Space_Invaders_Scene extends Scene_Component
         this.init_sounds(); 
         this.context = context;
 
+        this.shieldUp = false;
+
       }
     make_control_panel()
       { 
         this.key_triggered_button( "Rotate Left",  [ "a" ], () => this.turnLeft = true, undefined , ()=>this.turnLeft=false );
         this.key_triggered_button( "Rotate Right",  [ "d" ], () => this.turnRight=true, undefined, ()=>this.turnRight=false );
         this.key_triggered_button( "Shoot Laser",  [ "v" ], () => this.shoot_laser() );
+        this.key_triggered_button( "Shield",  [ "s" ], () => this.toggle_shield() );
         this.key_triggered_button( "Restart (when dead)", ["p"], () => this.restart_game());
       }
     display( graphics_state )
@@ -174,6 +181,7 @@ class Space_Invaders_Scene extends Scene_Component
         turret = model_transform.times( Mat4.translation( [0, 1.2, 0] ) )
                                 .times( Mat4.scale( [0.55,0.55,0.55] ) )
                                 .times( Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) );
+
         if(!this.tookDamage)
           {
             this.shapes.player_base.draw( graphics_state, model_transform, this.materials.player_base.override( { texture: this.texture } ) );
@@ -186,7 +194,16 @@ class Space_Invaders_Scene extends Scene_Component
             if (!this.gameOver)
                 this.tookDamage = false;
             this.sound.bgm.playbackRate = 1 + (3-this.health)*0.2;
-          }        
+          }
+        //shield
+        if(this.shieldUp){
+            model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
+            model_transform = model_transform
+                                    .times( Mat4.rotation( this.camera_angle+Math.PI/2, Vec.of(0,1,0) ) )
+                                    .times( Mat4.translation( [5, 0, 0] ) )
+                                    .times( Mat4.scale( [0.5,1,1] ) );
+            this.shapes.shield.draw( graphics_state, model_transform, this.materials.shield );
+        }
 
         //ground
         model_transform = Mat4.identity().times( Mat4.scale( [25, 20, 25] ) )
@@ -221,10 +238,20 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.scale( [0.05, 0.05, 1] ) );
             this.shapes.laser.draw( graphics_state, model_transform, this.materials.laser );
         }
+
+        //bullets
+        for (let i=0; i<this.bullet_pos.length; i++){
+            model_transform = Mat4.identity().times( Mat4.rotation( this.bullet_pos[i][1], Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [this.bullet_pos[i][0],3.4,0] ) )
+                                             .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
+                                             .times( Mat4.scale( [0.5, 0.5, 0.5] ) );
+            this.shapes.bullet.draw( graphics_state, model_transform, this.materials.laser );
+        }
         if(!this.gameOver)
         {
-            this.update_enemy_pos(graphics_state);
+            this.update_enemy_pos();
             this.update_laser_pos();
+            this.update_bullet_pos();
             this.spawn_enemies(dt);
             this.sound.bgm.play();
         } 
@@ -298,6 +325,30 @@ class Space_Invaders_Scene extends Scene_Component
               
           }
       }
+      update_bullet_pos( ){
+          for (let i=0; i<this.bullet_pos.length; i++){
+              const radius = this.bullet_pos[i][0];
+              const angle = this.bullet_pos[i][1];
+              
+              //check collision here
+              if(radius < 2.0){
+                  //remove bullet
+                  this.bullet_pos.splice(i,1);
+                  i--;
+                  this.player_got_hit();
+                  //player gets hit
+              } else if(radius < 5 && radius > 4 && this.shieldUp){
+                  //check if shield blocks
+                  const shield_ang = (this.camera_angle+Math.PI/2)%(2*Math.PI)
+                  console.log(shield_ang);
+                  console.log(angle%(2*Math.PI));
+              } else{
+                  this.bullet_pos[i][0] -= 0.08;
+              }
+              
+          }
+      }
+
       orientation(p, q, r) { 
         let val = (q.y - p.y) * (r.x - q.x) - 
                   (q.x - p.x) * (r.y - q.y); 
@@ -328,6 +379,9 @@ class Space_Invaders_Scene extends Scene_Component
             const real_pos = [radius*Math.sin(angle), radius*Math.cos(angle)];
             var collision = false;
             for (let j=0; j<this.enemy_pos.length && !collision; j++){
+                //ignore falling enemies
+                if(this.enemy_pos[j][2] > 3)
+                  continue;
 
                 const r = this.enemy_pos[j][0];
                 const a = this.enemy_pos[j][1];
@@ -352,7 +406,7 @@ class Space_Invaders_Scene extends Scene_Component
             }
             return false;
       }
-      update_enemy_pos( graphics_state ){
+      update_enemy_pos( ){
           for (let i=0; i<this.enemy_pos.length; i++){
               if(this.enemy_pos[i][2]>3)
               {
@@ -362,7 +416,7 @@ class Space_Invaders_Scene extends Scene_Component
               else if(this.enemy_pos[i][0] < 2.0)
               {
                   
-                  this.player_got_hit(graphics_state);
+                  this.player_got_hit();
                   
                   //dont move
                   this.enemy_pos.splice(i,1);
@@ -370,12 +424,17 @@ class Space_Invaders_Scene extends Scene_Component
               } 
               else
               {
+                  // random chance to shoot bullet
+                  if(this.enemy_pos[i][0] > 5.0 && Math.random()>0.9995){
+                      var new_pos = [this.enemy_pos[i][0], this.enemy_pos[i][1]];
+                      this.bullet_pos.push(new_pos);
+                  }
                   this.enemy_pos[i][0] -= this.enemySpeed;
               }
               
           }
       }
-      player_got_hit(graphics_state)
+      player_got_hit()
       {
         const newAudio = this.sound.damage.cloneNode()
         newAudio.play();
@@ -405,17 +464,20 @@ class Space_Invaders_Scene extends Scene_Component
              
            }
            this.maxSpawn = Math.floor(this.score/30) + 15;
-           this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
+           //this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
       }
       shoot_laser(){
-          if(this.sound.laser.paused && !this.gameOver){
-              var new_laser = [1, this.camera_angle+Math.PI/2];
+          if(this.sound.laser.paused && !this.gameOver && !this.shieldUp){
+            var new_laser = [1, this.camera_angle+Math.PI/2];
             this.laser_pos.push(new_laser);
             this.sound.laser.play()
           }
 //           const newAudio = this.laser_sound.cloneNode()
 //           newAudio.volume = 0.2;
 //           newAudio.play();
+      }
+      toggle_shield(){
+          this.shieldUp = !this.shieldUp;
       }
       restart_game()
       {
