@@ -1,24 +1,26 @@
-# 3D Space Invaders
+![alt text](assets/img/start_screen.png "start screen")
+# 
 
 ![alt text](assets/img/invader.png "Space Invaders")
 
 ## Summary
-A homage to the classic game Space Invaders. The player rotates on a fixed point has a laser to shoot the space invaders. 
-The goal of the game is to eliminate all the enemies and avoid taking damage to get the highest score. 
-The invaders will also shoot projectiles at the player, so the player will have to do their best to shield these projectiles to avoid taking damage.
+A homage to the classic game Space Invaders. The player defends a fortress that is armed with a laser with which to shoot the space invaders. The invaders will circle in on the player as depicted below.
+The goal of the game is to eliminate enemies and avoid taking damage for as long as possible in order to get the highest score. 
+The invaders can damage the player via direct contact or poisonous balls of goo, the later of which the player must put up a shield for to avoid taking damage.
 
-The player will be situated on a platform and must defend against invaders as they circle in on the platform and player, 
-similar to the Mario Party minigame Saucer Swarm, shown below.
+![alt text](assets/img/action_shot.png "3d space invaders gameplay in action")
 
-![alt text](assets/img/SaucerSwarmDuel.png "Saucer Swarm")
+The player loses when they no longer have any lives left.
+
+![alt text](assets/img/end_screen.png "game over screen")
 
 ## Advanced Topics
 - Collision Detection
-  - We will detect collisions between:
+  - We detect collisions between:
     - the player’s bullets and the enemies
-    - The enemy and enemy bullets and the player
+    - The enemy and enemy "bullets" and the player
 - Shadows
-  - A light will shine on the space invaders from an angle and there will be shadows on the invaders and the platform that the player is located on as a result
+  - A light shines down from above, casting shadows on the invaders, platform, and player as a result
 
 ## Roles
 - Amy Tu
