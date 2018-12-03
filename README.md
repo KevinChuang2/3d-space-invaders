@@ -1,6 +1,6 @@
 # 3D Space Invaders
 
-![alt text](invader.png "Space Invaders")
+![alt text](assets/img/invader.png "Space Invaders")
 
 ## Summary
 A homage to the classic game Space Invaders. The player rotates on a fixed point has a laser to shoot the space invaders. 
@@ -10,7 +10,7 @@ The invaders will also shoot projectiles at the player, so the player will have 
 The player will be situated on a platform and must defend against invaders as they circle in on the platform and player, 
 similar to the Mario Party minigame Saucer Swarm, shown below.
 
-![alt text](SaucerSwarmDuel.png "Saucer Swarm")
+![alt text](assets/img/SaucerSwarmDuel.png "Saucer Swarm")
 
 ## Advanced Topics
 - Collision Detection
