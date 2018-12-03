@@ -310,9 +310,10 @@ class Space_Invaders_Scene extends Scene_Component
 
                 const r = this.enemy_pos[j][0];
                 const a = this.enemy_pos[j][1];
+                const tol = 0.1;
 
-                const invtan = Math.atan(1/r);
-                const hyp = Math.sqrt(r**2+1);
+                const invtan = Math.atan( (1+tol)/r );
+                const hyp = Math.sqrt( r**2+(1+tol)**2 );
                 // calculate start and end points of enemy front face segment
                 const e1 = {x: hyp*Math.sin(a-invtan), y: hyp*Math.cos(a-invtan)};
                 const e2 = {x: hyp*Math.sin(a+invtan), y: hyp*Math.cos(a+invtan)};
