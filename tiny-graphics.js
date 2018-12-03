@@ -513,7 +513,7 @@ class Scene_Component       // The Scene_Component superclass is the base class 
              event.stopPropagation();   // Don't bubble the event to parent nodes; let child elements be targetted in isolation.
            }
       Object.assign( this, { key_controls: new Keyboard_Manager( document, callback_behavior), globals: webgl_manager.globals } );
-      control_box.appendChild( Object.assign( document.createElement("div"), { textContent: "Space Invaders", className: "control-title", textAlign: "center" } ) )
+      control_box.appendChild( Object.assign( document.createElement("div"), { textContent: "Controls", className: "control-title", textAlign: "center" } ) )
       this.control_panel = control_box.appendChild( document.createElement( "div" ) );
       this.control_panel.className = "control-div";        
     }
@@ -527,8 +527,8 @@ class Scene_Component       // The Scene_Component superclass is the base class 
                         release_event, recipient = this, parent = this.control_panel )      // Trigger any scene behavior by assigning a key
     { const button = parent.appendChild( document.createElement( "button" ) );              // shortcut and a labelled HTML button to it.
       button.default_color = button.style.backgroundColor = color;
-      const  press = () => { Object.assign( button.style, { 'background-color' : 'red', 
-                                                            'z-index': "1", 'transform': "scale(2)" } );
+      const  press = () => { Object.assign( button.style, { 'background-color' : 'black', 
+                                                            'z-index': "1", 'transform': "scale(1.3)" } );
                              callback.call( recipient );
                            },
            release = () => { Object.assign( button.style, { 'background-color' : button.default_color, 
@@ -571,21 +571,21 @@ class Canvas_Widget                    // Canvas_Widget embeds a WebGL demo onto
                       ".canvas-widget table { border-collapse: collapse; display:block; overflow-x: auto; }",
                       ".canvas-widget table.control-box { width: 1080px; border:0; margin:0; max-height:380px; transition:.5s; overflow-y:scroll; background:DimGray }",
                       ".canvas-widget table.control-box:hover { max-height:500px }",
-                      ".canvas-widget table.control-box td { overflow:hidden; border:0; background:DimGray; border-radius:30px }",
-                      ".canvas-widget table.control-box td .control-div { background: #171717; height:338px; padding: 5px 5px 5px 30px; box-shadow: 25px 0px 60px -15px inset }",
+                      ".canvas-widget table.control-box td { overflow:hidden; border:0; background:DimGray; }",
+                      ".canvas-widget table.control-box td .control-div { background: #171717; height:338px; padding: 5px 5px 5px 20px; box-shadow: 25px 0px 60px -15px inset }",
                       ".canvas-widget table.control-box td * { background:transparent }",
                       ".canvas-widget table.control-box .control-div td { border-radius:unset }",
-                      ".canvas-widget table.control-box .control-title { padding:7px 40px; height: 50px; color:white; background:DarkSlateGray; box-shadow: 25px 0px 70px -15px inset black; textAlign: center }",
+                      ".canvas-widget table.control-box .control-title { padding:20px 40px; height: 20px; color:white; background:DarkSlateGray; box-shadow: 25px 0px 70px -15px inset black; textAlign: center }",
                       ".canvas-widget *.live_string { display:inline-block; background:unset }",
                       ".dropdown { display:inline-block }",
                       ".dropdown-content { display:inline-block; transition:.2s; transform: scaleY(0); overflow:hidden; position: absolute; \
                                             z-index: 1; background:#E8F6FF; padding: 16px; margin-left:30px; min-width: 100px; \
-                                            box-shadow: 5px 10px 16px 0px rgba(0,0,0,0.2) inset; border-radius:10px }",
+                                            box-shadow: 5px 10px 16px 0px rgba(0,0,0,0.2) inset;}",
                       ".dropdown-content a { color: black; padding: 4px 4px; display: block }",
                       ".dropdown a:hover { background: #f1f1f1 }",
-                      ".canvas-widget button { background: #4C9F50; color: white; padding: 20px; border-radius:12px; \
+                      ".canvas-widget button { background: #4C9F50; color: white; padding: 20px; \
                                                 box-shadow: 4px 6px 16px 0px rgba(0,0,0,0.3); transition: background .3s, transform .3s }",
-                      ".canvas-widget button:hover, button:focus { transform: scale(1.3); color:gold }",
+                      ".canvas-widget button:hover, button:focus { transform: scale(1.1); color:gold }",
                       ".link { text-decoration:underline; cursor: pointer }",
                       ".show { transform: scaleY(1); height:200px; overflow:auto }",
                       ".hide { transform: scaleY(0); height:0px; overflow:hidden  }" ];
