@@ -197,14 +197,9 @@ class Space_Invaders_Scene extends Scene_Component
           }
         //shield
         if(this.shieldUp){
-//             model_transform = Mat4.identity().times( Mat4.translation( [0, 2, 0] ) );
-//             model_transform = model_transform
-//                                     .times( Mat4.rotation( this.camera_angle+Math.PI/2, Vec.of(0,1,0) ) )
-//                                     .times( Mat4.translation( [5, 0, 0] ) )
-//                                     .times( Mat4.scale( [0.5,1,1] ) );
             model_transform = Mat4.identity().times( Mat4.scale( [1.5,1.5,1.5] ))
-                                         .times(Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) )
-                                         .times( Mat4.translation( [0,1.5,-2] ) );
+                                             .times(Mat4.rotation( this.camera_angle, Vec.of(0,1,0) ) )
+                                             .times( Mat4.translation( [0,1.5,-2] ) );
             this.shapes.shield.draw( graphics_state, model_transform, this.materials.shield );
         }
 
@@ -248,7 +243,13 @@ class Space_Invaders_Scene extends Scene_Component
                                              .times( Mat4.translation( [this.bullet_pos[i][0],3.4,0] ) )
                                              .times( Mat4.rotation( Math.PI/2, Vec.of(0,1,0) ) )
                                              .times( Mat4.scale( [0.5, 0.5, 0.5] ) );
-            this.shapes.bullet.draw( graphics_state, model_transform, this.materials.laser );
+            let rand_index = this.bullet_pos[i][2];
+            let bullet = this.materials.laser;
+            if (rand_index == 1) { bullet = bullet.override( { color: Color.of( .7,.755, .0,0.6 ) } ); } 
+            else if (rand_index == 2) { bullet = bullet.override( { color: Color.of( .124,.7,.068,0.6 ) } ); } 
+            else if (rand_index == 3) { bullet = bullet.override( { color: Color.of( .7,.0,.586,0.6 ) } ); } 
+            else { bullet = bullet.override( { color: Color.of( .0,.7,.755,0.6 ) } ); }                                 
+            this.shapes.bullet.draw( graphics_state, model_transform, bullet);
         }
         if(!this.gameOver)
         {
@@ -290,21 +291,30 @@ class Space_Invaders_Scene extends Scene_Component
         this.sound.laser = new Audio('assets/sound/151025__bubaproducer__laser-shot-small-1.wav');
         this.sound.laser.load();
         this.sound.laser.playbackRate = 1.5;
+        this.sound.laser.volume = 0.5;
 
         this.sound.hit = new Audio('assets/sound/170149__timgormly__8-bit-hurt.wav');
         this.sound.hit.load();
+        this.sound.hit.volume = 0.5;
 
-        this.sound.splat = new Audio('assets/sound/232135__yottasounds__splat-005.wav');
+        this.sound.splat = new Audio('assets/sound/445109__breviceps__mud-splat.wav');
         this.sound.splat.load();
+        this.sound.splat.volume = 0.5;
+
+        this.sound.spit = new Audio('assets/sound/199823__connersaw64__egg-shaker-1-throw.wav');
+        this.sound.spit.load();
 
         this.sound.damage = new Audio('assets/sound/punch_or_whack_-Vladimir-403040765.wav');
         this.sound.damage.currentTime = .2;
         this.sound.damage.load();
+        this.sound.damage.volume = 0.5;
 
         this.sound.bgm = new Audio('assets/sound/BGM.wav');
         this.sound.bgm.load();
         this.sound.bgm.loop = true;
-        this.sound.gameOver = new Audio('assets/sound/GameOver1.wav');
+        this.sound.bgm.volume = 0.5;
+
+        this.sound.gameOver = new Audio('assets/sound/GameOver.wav');
         this.sound.gameOver.load();
         this.sound.gameOver.loop = true;
       }
@@ -345,7 +355,7 @@ class Space_Invaders_Scene extends Scene_Component
                   i--;
                   this.player_got_hit();
                   //player gets hit
-              } else if(radius < 5 && radius > 4 && this.shieldUp){
+              } else if(radius < 4 && radius > 3 && this.shieldUp){
                   //check if shield blocks
                   const shield_ang = this.camera_angle + Math.PI/2;
                   //console.log(shield_ang);
@@ -448,8 +458,10 @@ class Space_Invaders_Scene extends Scene_Component
               {
                   // random chance to shoot bullet
                   if(this.enemy_pos[i][0] > 5.0 && Math.random()>0.9995){
-                      var new_pos = [this.enemy_pos[i][0], this.enemy_pos[i][1]];
+                      var new_pos = [this.enemy_pos[i][0], this.enemy_pos[i][1],this.enemy_pos[i][3]];
                       this.bullet_pos.push(new_pos);
+                      const newAudio = this.sound.spit.cloneNode();
+                      newAudio.play();
                   }
                   this.enemy_pos[i][0] -= this.enemySpeed;
               }
@@ -458,7 +470,7 @@ class Space_Invaders_Scene extends Scene_Component
       }
       player_got_hit()
       {
-        const newAudio = this.sound.damage.cloneNode()
+        const newAudio = this.sound.damage.cloneNode();
         newAudio.play();
         this.health--;
         if(this.health <=0)
@@ -486,7 +498,7 @@ class Space_Invaders_Scene extends Scene_Component
              
            }
            this.maxSpawn = Math.floor(this.score/30) + 15;
-           //this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
+           this.spawnRate = Math.max(0.5, 2.0 - Math.floor(this.score/50)/6 );
       }
       shoot_laser(){
           if(this.sound.laser.paused && !this.gameOver && !this.shieldUp){
