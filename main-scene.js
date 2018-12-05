@@ -20,20 +20,20 @@ class Space_Invaders_Scene extends Scene_Component
 
         const shapes = { skybox:   new Cube(),
                          laser: new Rounded_Capped_Cylinder(5,5),
-                         bullet: new Shape_From_File( "/assets/models/goo.obj" ),
-                         shield: new Shape_From_File( "/assets/models/shield.obj" ),
-                         invader1_1: new Shape_From_File( "/assets/models/invader1_1.obj" ),
-                         invader2_1: new Shape_From_File( "/assets/models/invader2_1.obj" ),
-                         invader3_1: new Shape_From_File( "/assets/models/invader3_1.obj" ),
-                         invader4_1: new Shape_From_File( "/assets/models/invader4_1.obj" ),
-                         invader1_2: new Shape_From_File( "/assets/models/invader1_2.obj" ),
-                         invader2_2: new Shape_From_File( "/assets/models/invader2_2.obj" ),
-                         invader3_2: new Shape_From_File( "/assets/models/invader3_2.obj" ),
-                         invader4_2: new Shape_From_File( "/assets/models/invader4_2.obj" ),
-                         player: new Shape_From_File( "/assets/models/player.obj" ),
-                         player_base: new Shape_From_File( "/assets/models/player_base.obj" ),
-                         player_turret: new Shape_From_File( "/assets/models/player_turret.obj" ),
-                         ground: new Shape_From_File( "/assets/models/ground.obj")
+                         bullet: new Shape_From_File( "assets/models/goo.obj" ),
+                         shield: new Shape_From_File( "assets/models/shield.obj" ),
+                         invader1_1: new Shape_From_File( "assets/models/invader1_1.obj" ),
+                         invader2_1: new Shape_From_File( "assets/models/invader2_1.obj" ),
+                         invader3_1: new Shape_From_File( "assets/models/invader3_1.obj" ),
+                         invader4_1: new Shape_From_File( "assets/models/invader4_1.obj" ),
+                         invader1_2: new Shape_From_File( "assets/models/invader1_2.obj" ),
+                         invader2_2: new Shape_From_File( "assets/models/invader2_2.obj" ),
+                         invader3_2: new Shape_From_File( "assets/models/invader3_2.obj" ),
+                         invader4_2: new Shape_From_File( "assets/models/invader4_2.obj" ),
+                         player: new Shape_From_File( "assets/models/player.obj" ),
+                         player_base: new Shape_From_File( "assets/models/player_base.obj" ),
+                         player_turret: new Shape_From_File( "assets/models/player_turret.obj" ),
+                         ground: new Shape_From_File( "assets/models/ground.obj")
                        }
         this.submit_shapes( context, shapes );
 
